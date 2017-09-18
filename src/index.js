@@ -1,4 +1,3 @@
-import middleware from './middleware'
 import enhancer, { getFirebase } from './enhancer'
 import reducer from './reducer'
 import constants, { actionTypes } from './constants'
@@ -6,11 +5,10 @@ import constants, { actionTypes } from './constants'
 
 export default {
   firebaseStateReducer: reducer,
+  firebaseReducer: reducer,
   reducer,
   reduxFirebase: enhancer,
   enhancer,
-  reduxFirebaseMiddleware: middleware,
-  middleware,
   constants,
   actionTypes,
   getFirebase

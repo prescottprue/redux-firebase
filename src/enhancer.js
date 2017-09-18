@@ -1,6 +1,7 @@
 import { createFirebaseInstance } from './createFirebaseInstance'
 import { defaultConfig } from './constants'
 import { authActions } from './actions'
+import middleware from './middleware'
 
 let firebaseInstance
 
@@ -75,8 +76,8 @@ let firebaseInstance
  * const store = createStoreWithFirebase(rootReducer, initialState)
  */
 export default (fbConfig, otherConfig) => next =>
-  (reducer, initialState, middleware) => {
-    const store = next(reducer, initialState, middleware)
+  (reducer, initialState, otherMiddleware) => {
+    const store = next(reducer, initialState, otherMiddleware ? [middleware, ...otherMiddleware] : [middleware])
 
     // firebase instance not being passed in as first argument
     if (typeof fbConfig.database !== 'function') {

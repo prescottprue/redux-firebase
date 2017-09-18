@@ -49,12 +49,12 @@ Include `reactReduxFirebase` in your store compose function and  `firebaseStateR
 
 ```javascript
 import { createStore, combineReducers, compose } from 'redux'
-import { reactReduxFirebase, firebaseStateReducer } from 'react-redux-firebase'
+import { reduxFirebase, firebaseReducer } from 'react-redux-firebase'
 import * as firebase from 'firebase'
 
 // Add Firebase to reducers
 const rootReducer = combineReducers({
-  firebase: firebaseStateReducer
+  firebase: firebaseReducer
 })
 
 // Firebase config
