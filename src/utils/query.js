@@ -1,14 +1,14 @@
-import { actionTypes } from '../constants'
-import { promisesForPopulate } from './populate'
-import { isNaN, forEach, isObject, size } from 'lodash'
+import { actionTypes } from '../constants';
+import { promisesForPopulate } from './populate';
+import { isNaN, forEach, isObject, size } from 'lodash';
 
 const tryParseToNumber = (value) => {
-  const result = Number(value)
+  const result = Number(value);
   if (isNaN(result)) {
-    return value
+    return value;
   }
-  return result
-}
+  return result;
+};
 
 /**
  * @private
@@ -19,10 +19,10 @@ const tryParseToNumber = (value) => {
  */
 export const getWatchPath = (event, path) => {
   if (!event || event === '' || !path) {
-    throw new Error('Event and path are required')
+    throw new Error('Event and path are required');
   }
-  return `${event}:${((path.substring(0, 1) === '/') ? '' : '/')}${path}`
-}
+  return `${event}:${((path.substring(0, 1) === '/') ? '' : '/')}${path}`;
+};
 
 /**
  * @private
@@ -31,23 +31,23 @@ export const getWatchPath = (event, path) => {
  * @param {String} event - Type of query event
  */
 export const getQueryIdFromPath = (path, event = undefined) => {
-  const origPath = path
-  let pathSplitted = path.split('#')
-  path = pathSplitted[0]
+  const origPath = path;
+  const pathSplitted = path.split('#');
+  path = pathSplitted[0];
 
-  const isQuery = pathSplitted.length > 1
-  const queryParams = isQuery ? pathSplitted[1].split('&') : []
+  const isQuery = pathSplitted.length > 1;
+  const queryParams = isQuery ? pathSplitted[1].split('&') : [];
   const queryId = isQuery ? queryParams.map((param) => {
-    let splittedParam = param.split('=')
+    const splittedParam = param.split('=');
     // Handle query id in path
     if (splittedParam[0] === 'queryId') {
-      return splittedParam[1]
+      return splittedParam[1];
     }
-  }).filter(q => q) : undefined
+  }).filter(q => q) : undefined;
   return queryId && queryId.length > 0
       ? (event ? `${event}:/${queryId}` : queryId[0])
-      : (isQuery ? origPath : undefined)
-}
+      : (isQuery ? origPath : undefined);
+};
 
 /**
  * @private
@@ -59,18 +59,18 @@ export const getQueryIdFromPath = (path, event = undefined) => {
  * @return {Integer} watcherCount - count
  */
 export const setWatcher = (firebase, dispatch, event, path, queryId = undefined) => {
-  const id = queryId || getQueryIdFromPath(path, event) || getWatchPath(event, path)
+  const id = queryId || getQueryIdFromPath(path, event) || getWatchPath(event, path);
 
   if (firebase._.watchers[id]) {
-    firebase._.watchers[id]++
+    firebase._.watchers[id]++;
   } else {
-    firebase._.watchers[id] = 1
+    firebase._.watchers[id] = 1;
   }
 
-  dispatch({ type: actionTypes.SET_LISTENER, path, payload: { id } })
+  dispatch({ type: actionTypes.SET_LISTENER, path, payload: { id } });
 
-  return firebase._.watchers[id]
-}
+  return firebase._.watchers[id];
+};
 
 /**
  * @private
@@ -82,9 +82,9 @@ export const setWatcher = (firebase, dispatch, event, path, queryId = undefined)
  * @return {Number} watcherCount
  */
 export const getWatcherCount = (firebase, event, path, queryId = undefined) => {
-  const id = queryId || getQueryIdFromPath(path, event) || getWatchPath(event, path)
-  return firebase._.watchers[id]
-}
+  const id = queryId || getQueryIdFromPath(path, event) || getWatchPath(event, path);
+  return firebase._.watchers[id];
+};
 
 /**
  * @private
@@ -96,20 +96,20 @@ export const getWatcherCount = (firebase, event, path, queryId = undefined) => {
  * @param {String} queryId - Id of query
  */
 export const unsetWatcher = (firebase, dispatch, event, path, queryId = undefined) => {
-  let id = queryId || getQueryIdFromPath(path, event) || getWatchPath(event, path)
-  path = path.split('#')[0]
+  const id = queryId || getQueryIdFromPath(path, event) || getWatchPath(event, path);
+  path = path.split('#')[0];
   if (firebase._.watchers[id] <= 1) {
-    delete firebase._.watchers[id]
+    delete firebase._.watchers[id];
     if (event !== 'first_child' && event !== 'once') {
-      firebase.database().ref().child(path).off(event)
+      firebase.database().ref().child(path).off(event);
       // TODO: Remove config.distpatchOnUnsetListener
     }
   } else if (firebase._.watchers[id]) {
-    firebase._.watchers[id]--
+    firebase._.watchers[id]--;
   }
 
-  dispatch({ type: actionTypes.UNSET_LISTENER, path, payload: { id } })
-}
+  dispatch({ type: actionTypes.UNSET_LISTENER, path, payload: { id } });
+};
 
 /**
  * @description Modify query to include methods based on query parameters (such as orderByChild)
@@ -118,67 +118,67 @@ export const unsetWatcher = (firebase, dispatch, event, path, queryId = undefine
  * @return {FirebaseQuery}
  */
 export const applyParamsToQuery = (queryParams, query) => {
-  let doNotParse = false
+  let doNotParse = false;
   if (queryParams) {
-    queryParams.forEach(param => {
-      param = param.split('=')
+    queryParams.forEach((param) => {
+      param = param.split('=');
       switch (param[0]) {
         case 'orderByValue':
-          query = query.orderByValue()
-          doNotParse = true
-          break
+          query = query.orderByValue();
+          doNotParse = true;
+          break;
         case 'orderByPriority':
-          query = query.orderByPriority()
-          doNotParse = true
-          break
+          query = query.orderByPriority();
+          doNotParse = true;
+          break;
         case 'orderByKey':
-          query = query.orderByKey()
-          doNotParse = true
-          break
+          query = query.orderByKey();
+          doNotParse = true;
+          break;
         case 'orderByChild':
-          query = query.orderByChild(param[1])
-          break
+          query = query.orderByChild(param[1]);
+          break;
         case 'limitToFirst':
           // TODO: Handle number not being passed as param
-          query = query.limitToFirst(parseInt(param[1], 10))
-          break
+          query = query.limitToFirst(parseInt(param[1], 10));
+          break;
         case 'limitToLast':
           // TODO: Handle number not being passed as param
-          query = query.limitToLast(parseInt(param[1], 10))
-          break
+          query = query.limitToLast(parseInt(param[1], 10));
+          break;
         case 'notParsed':
           // support disabling internal number parsing (number strings)
-          doNotParse = true
-          break
+          doNotParse = true;
+          break;
         case 'equalTo':
-          let equalToParam = !doNotParse ? tryParseToNumber(param[1]) : param[1]
-          equalToParam = equalToParam === 'null' ? null : equalToParam
-          equalToParam = equalToParam === 'false' ? false : equalToParam
-          equalToParam = equalToParam === 'true' ? true : equalToParam
+          let equalToParam = !doNotParse ? tryParseToNumber(param[1]) : param[1];
+          equalToParam = equalToParam === 'null' ? null : equalToParam;
+          equalToParam = equalToParam === 'false' ? false : equalToParam;
+          equalToParam = equalToParam === 'true' ? true : equalToParam;
           query = param.length === 3
             ? query.equalTo(equalToParam, param[2])
-            : query.equalTo(equalToParam)
-          break
+            : query.equalTo(equalToParam);
+          break;
         case 'startAt':
-          let startAtParam = !doNotParse ? tryParseToNumber(param[1]) : param[1]
-          startAtParam = startAtParam === 'null' ? null : startAtParam
+          let startAtParam = !doNotParse ? tryParseToNumber(param[1]) : param[1];
+          startAtParam = startAtParam === 'null' ? null : startAtParam;
           query = param.length === 3
             ? query.startAt(startAtParam, param[2])
-            : query.startAt(startAtParam)
-          break
+            : query.startAt(startAtParam);
+          break;
         case 'endAt':
-          let endAtParam = !doNotParse ? tryParseToNumber(param[1]) : param[1]
-          endAtParam = endAtParam === 'null' ? null : endAtParam
+          let endAtParam = !doNotParse ? tryParseToNumber(param[1]) : param[1];
+          endAtParam = endAtParam === 'null' ? null : endAtParam;
           query = param.length === 3
             ? query.endAt(endAtParam, param[2])
-            : query.endAt(endAtParam)
-          break
+            : query.endAt(endAtParam);
+          break;
       }
-    })
+    });
   }
 
-  return query
-}
+  return query;
+};
 
 /**
  * Get ordered array from snapshot
@@ -186,14 +186,14 @@ export const applyParamsToQuery = (queryParams, query) => {
  * @return {Array} Ordered list of children from snapshot
  */
 export const orderedFromSnapshot = (snapshot) => {
-  const ordered = []
+  const ordered = [];
   if (snapshot.forEach) {
     snapshot.forEach((child) => {
-      ordered.push({ key: child.key, value: child.val() })
-    })
+      ordered.push({ key: child.key, value: child.val() });
+    });
   }
-  return size(ordered) ? ordered : undefined
-}
+  return size(ordered) ? ordered : undefined;
+};
 
 /**
  * Get data associated with populate settings, and dispatch
@@ -209,7 +209,7 @@ export const orderedFromSnapshot = (snapshot) => {
  * @private
  */
 export const populateAndDispatch = (firebase, dispatch, config) => {
-  const { data, populates, snapshot, path, storeAs } = config
+  const { data, populates, snapshot, path, storeAs } = config;
   // TODO: Allow setting of unpopulated data before starting population through config
   return promisesForPopulate(firebase, snapshot.key, data, populates)
     .then((results) => {
@@ -221,22 +221,22 @@ export const populateAndDispatch = (firebase, dispatch, config) => {
         dispatch({
           type: actionTypes.MERGE,
           path,
-          data: result
-        })
-      })
+          data: result,
+        });
+      });
       dispatch({
         type: actionTypes.SET,
         path: storeAs || path,
         data,
-        ordered: orderedFromSnapshot(snapshot)
-      })
-      return results
+        ordered: orderedFromSnapshot(snapshot),
+      });
+      return results;
     })
     .catch((err) => {
       dispatch({
         type: actionTypes.ERROR,
-        payload: err
-      })
-      return Promise.reject(err)
-    })
-}
+        payload: err,
+      });
+      return Promise.reject(err);
+    });
+};

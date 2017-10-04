@@ -1,4 +1,4 @@
-extends: ../.eslintrc
+extends: ../../.eslintrc
 
 globals:
   sinon: true
@@ -15,5 +15,4 @@ globals:
   uid: true
 
 rules:
-  no-unused-expressions: [0]
-  import/no-extraneous-dependencies: 0
+  react/jsx-filename-extension: 0

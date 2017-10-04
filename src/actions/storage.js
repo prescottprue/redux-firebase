@@ -1,7 +1,7 @@
-import { map, isFunction } from 'lodash'
-import { actionTypes } from '../constants'
-import { wrapInDispatch } from '../utils/actions'
-import { deleteFile as deleteFileFromFb } from '../utils/storage'
+import { map, isFunction } from 'lodash';
+import { actionTypes } from '../constants';
+import { wrapInDispatch } from '../utils/actions';
+import { deleteFile as deleteFileFromFb } from '../utils/storage';
 
 const {
   FILE_UPLOAD_START,
@@ -10,8 +10,8 @@ const {
   FILE_UPLOAD_COMPLETE,
   FILE_DELETE_START,
   FILE_DELETE_ERROR,
-  FILE_DELETE_COMPLETE
-} = actionTypes
+  FILE_DELETE_COMPLETE,
+} = actionTypes;
 
 /**
  * @description Upload a file with actions fired for progress, success, and errors
@@ -23,8 +23,8 @@ const {
  * @private
  */
 export const uploadFileWithProgress = (dispatch, firebase, { path, file }) => {
-  dispatch({ type: FILE_UPLOAD_START, payload: { path, file } })
-  const uploadEvent = firebase.storage().ref(`${path}/${file.name}`).put(file)
+  dispatch({ type: FILE_UPLOAD_START, payload: { path, file } });
+  const uploadEvent = firebase.storage().ref(`${path}/${file.name}`).put(file);
   // TODO: Allow config to control whether progress it set to state or not
   const unListen = uploadEvent.on(
     firebase.storage.TaskEvent.STATE_CHANGED,
@@ -35,22 +35,22 @@ export const uploadFileWithProgress = (dispatch, firebase, { path, file }) => {
           path,
           payload: {
             snapshot,
-            percent: Math.floor(snapshot.bytesTransferred / snapshot.totalBytes * 100)
-          }
-        })
+            percent: Math.floor(snapshot.bytesTransferred / snapshot.totalBytes * 100),
+          },
+        });
       },
       error: (err) => {
-        dispatch({ type: FILE_UPLOAD_ERROR, path, payload: err })
-        unListen()
+        dispatch({ type: FILE_UPLOAD_ERROR, path, payload: err });
+        unListen();
       },
       complete: () => {
-        dispatch({ type: FILE_UPLOAD_COMPLETE, path, payload: file })
-        unListen()
-      }
-    }
-  )
-  return uploadEvent
-}
+        dispatch({ type: FILE_UPLOAD_COMPLETE, path, payload: file });
+        unListen();
+      },
+    },
+  );
+  return uploadEvent;
+};
 
 /**
  * @description Upload file to Firebase Storage with option to store
@@ -69,21 +69,21 @@ export const uploadFile = (dispatch, firebase, { path, file, dbPath }) =>
   uploadFileWithProgress(dispatch, firebase, { path, file })
     .then((res) => {
       if (!dbPath || !firebase.database) {
-        return res
+        return res;
       }
-      const { metadata: { name, fullPath, downloadURLs } } = res
-      const { fileMetadataFactory } = firebase._.config
+      const { metadata: { name, fullPath, downloadURLs } } = res;
+      const { fileMetadataFactory } = firebase._.config;
 
       // Apply fileMetadataFactory if it exists in config
       const fileData = isFunction(fileMetadataFactory)
         ? fileMetadataFactory(res)
-        : { name, fullPath, downloadURL: downloadURLs[0] }
+        : { name, fullPath, downloadURL: downloadURLs[0] };
 
       return firebase.database()
         .ref(dbPath)
         .push(fileData)
-        .then(snapshot => ({ snapshot, key: snapshot.key, File: fileData }))
-    })
+        .then(snapshot => ({ snapshot, key: snapshot.key, File: fileData }));
+    });
 
 /**
  * @description Upload multiple files to Firebase Storage with option to store
@@ -98,10 +98,10 @@ export const uploadFile = (dispatch, firebase, { path, file, dbPath }) =>
  */
 export const uploadFiles = (dispatch, firebase, { path, files, dbPath }) =>
   Promise.all(
-    map(files, (file) =>
-      uploadFile(dispatch, firebase, { path, file, dbPath })
-    )
-  )
+    map(files, file =>
+      uploadFile(dispatch, firebase, { path, file, dbPath }),
+    ),
+  );
 
 /**
  * @description Delete File from Firebase Storage with option to remove meta
@@ -117,11 +117,11 @@ export const deleteFile = (dispatch, firebase, { path, dbPath }) =>
     method: deleteFileFromFb,
     args: [
       firebase,
-      { path, dbPath }
+      { path, dbPath },
     ],
     types: [
       FILE_DELETE_START,
       FILE_DELETE_COMPLETE,
-      FILE_DELETE_ERROR
-    ]
-  })
+      FILE_DELETE_ERROR,
+    ],
+  });

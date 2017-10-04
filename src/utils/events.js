@@ -1,6 +1,6 @@
-import { flatMap, isArray, isObject, isString, remove } from 'lodash'
-import { getPopulates } from './populate'
-import { getQueryIdFromPath } from './query'
+import { flatMap, isArray, isObject, isString, remove } from 'lodash';
+import { getPopulates } from './populate';
+import { getQueryIdFromPath } from './query';
 
 /**
  * @description Convert path string to object with queryParams, path, and populates
@@ -8,11 +8,11 @@ import { getQueryIdFromPath } from './query'
  * @return {Object} watchEvents - Array of watch events
  */
 export const pathStrToObj = (path) => {
-  let pathObj = { path, type: 'value', isQuery: false }
-  const queryId = getQueryIdFromPath(path)
+  let pathObj = { path, type: 'value', isQuery: false };
+  const queryId = getQueryIdFromPath(path);
   // If Query id exists split params from path
   if (queryId) {
-    const pathArray = path.split('#')
+    const pathArray = path.split('#');
     pathObj = Object.assign(
       {},
       pathObj,
@@ -20,17 +20,17 @@ export const pathStrToObj = (path) => {
         queryId,
         isQuery: true,
         path: pathArray[0],
-        queryParams: pathArray[1].split('&')
-      }
-    )
+        queryParams: pathArray[1].split('&'),
+      },
+    );
     if (getPopulates(pathArray[1].split('&'))) {
-      pathObj.populates = getPopulates(pathArray[1].split('&'))
-      pathObj.queryParams = remove(pathArray[1].split('&'), (p) => p.indexOf('populate') === -1)
+      pathObj.populates = getPopulates(pathArray[1].split('&'));
+      pathObj.queryParams = remove(pathArray[1].split('&'), p => p.indexOf('populate') === -1);
     }
   }
   // if queryId does not exist, return original pathObj
-  return pathObj
-}
+  return pathObj;
+};
 
 /**
  * @description Convert watch path definition array to watch events
@@ -40,7 +40,7 @@ export const pathStrToObj = (path) => {
 export const getEventsFromInput = paths =>
   flatMap(paths, (path) => {
     if (isString(path)) {
-      return [ pathStrToObj(path) ]
+      return [pathStrToObj(path)];
     }
 
     if (isArray(path)) {
@@ -51,27 +51,27 @@ export const getEventsFromInput = paths =>
         { type: 'child_added', path: path[0] },
         { type: 'child_removed', path: path[0] },
         { type: 'child_moved', path: path[0] },
-        { type: 'child_changed', path: path[0] }
-      ]
+        { type: 'child_changed', path: path[0] },
+      ];
     }
 
     if (isObject(path)) {
       if (!path.path) {
-        throw new Error('Path is a required parameter within definition object')
+        throw new Error('Path is a required parameter within definition object');
       }
-      let strPath = path.path
+      let strPath = path.path;
 
       if (path.queryParams) {
         // append query params to path for queryId added in pathStrToObj
-        strPath = `${strPath}#${path.queryParams.join('&')}`
+        strPath = `${strPath}#${path.queryParams.join('&')}`;
       }
 
       // Add all parameters that are missing (ones that exist will remain)
-      path = Object.assign({}, pathStrToObj(strPath), path)
-      return [ path ]
+      path = Object.assign({}, pathStrToObj(strPath), path);
+      return [path];
     }
 
-    throw new Error(`Invalid Path Definition: ${path}. Only strings, objects, and arrays accepted.`)
-  })
+    throw new Error(`Invalid Path Definition: ${path}. Only strings, objects, and arrays accepted.`);
+  });
 
-export default { getEventsFromInput }
+export default { getEventsFromInput };

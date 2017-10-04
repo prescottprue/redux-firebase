@@ -9,8 +9,8 @@ import {
   forEach,
   set,
   has,
-  every
-} from 'lodash'
+  every,
+} from 'lodash';
 
 /**
  * @private
@@ -19,12 +19,12 @@ import {
  */
 export const getPopulateObj = (str) => {
   if (!isString(str)) {
-    return str
+    return str;
   }
-  const strArray = str.split(':')
+  const strArray = str.split(':');
   // TODO: Handle childParam
-  return { child: strArray[0], root: strArray[1] }
-}
+  return { child: strArray[0], root: strArray[1] };
+};
 /**
  * @private
  * @description Determine the structure of the child parameter to populate onto
@@ -32,16 +32,16 @@ export const getPopulateObj = (str) => {
  */
 export const getChildType = (child) => {
   if (isString(child)) {
-    return 'string'
+    return 'string';
   }
   if (isArray(child)) {
-    return 'array'
+    return 'array';
   }
   if (isObject(child)) {
-    return 'object'
+    return 'object';
   }
-  return 'other'
-}
+  return 'other';
+};
 
 /**
  * @private
@@ -50,10 +50,10 @@ export const getChildType = (child) => {
  */
 export const getPopulateObjs = (arr) => {
   if (!isArray(arr)) {
-    return arr
+    return arr;
   }
-  return arr.map((o) => isObject(o) ? o : getPopulateObj(o))
-}
+  return arr.map(o => isObject(o) ? o : getPopulateObj(o));
+};
 
 /**
  * @private
@@ -62,14 +62,14 @@ export const getPopulateObjs = (arr) => {
  */
 export const getPopulates = (params) => {
   const populates = filter(params, param =>
-    param.indexOf('populate') !== -1 || (isObject(param) && param.populates)
-  ).map(p => p.split('=')[1])
+    param.indexOf('populate') !== -1 || (isObject(param) && param.populates),
+  ).map(p => p.split('=')[1]);
   // No populates
   if (!populates.length) {
-    return null
+    return null;
   }
-  return populates.map(getPopulateObj)
-}
+  return populates.map(getPopulateObj);
+};
 
 /**
  * @private
@@ -86,8 +86,8 @@ export const getPopulateChild = (firebase, populate, id) =>
    .once('value')
    .then(snap =>
      // Return id if population value does not exist
-     snap.val()
-   )
+     snap.val(),
+   );
 
 /**
  * @private
@@ -100,23 +100,23 @@ export const getPopulateChild = (firebase, populate, id) =>
 export const populateList = (firebase, list, p, results) => {
   // Handle root not being defined
   if (!results[p.root]) {
-    set(results, p.root, {})
+    set(results, p.root, {});
   }
   return Promise.all(
     map(list, (id, childKey) => {
       // handle list of keys
-      const populateKey = id === true ? childKey : id
+      const populateKey = id === true ? childKey : id;
       return getPopulateChild(firebase, p, populateKey)
-        .then(pc => {
+        .then((pc) => {
           if (pc) {
             // write child to result object under root name if it is found
-            return set(results, `${p.root}.${populateKey}`, pc)
+            return set(results, `${p.root}.${populateKey}`, pc);
           }
-          return results
-        })
-    })
-  )
-}
+          return results;
+        });
+    }),
+  );
+};
 
 /**
  * @private
@@ -127,19 +127,19 @@ export const populateList = (firebase, list, p, results) => {
  */
 export const promisesForPopulate = (firebase, dataKey, originalData, populatesIn) => {
   // TODO: Handle selecting of parameter to populate with (i.e. displayName of users/user)
-  let promisesArray = []
-  let results = {}
+  const promisesArray = [];
+  const results = {};
 
   // test if data is a single object, try generating populates and looking for the child
   const populatesForData = getPopulateObjs(
     isFunction(populatesIn)
       ? populatesIn(dataKey, originalData)
-      : populatesIn
-  )
+      : populatesIn,
+  );
 
-  const dataHasPopulateChilds = every(populatesForData, (populate) => (
+  const dataHasPopulateChilds = every(populatesForData, populate => (
     has(originalData, populate.child)
-  ))
+  ));
 
   if (dataHasPopulateChilds) {
     // Data is a single object, resolve populates directly
@@ -150,33 +150,33 @@ export const promisesForPopulate = (firebase, dataKey, originalData, populatesIn
             .then((v) => {
               // write child to result object under root name if it is found
               if (v) {
-                set(results, `${p.root}.${get(originalData, p.child)}`, v)
+                set(results, `${p.root}.${get(originalData, p.child)}`, v);
               }
-            })
-        )
+            }),
+        );
       }
 
       // Single Parameter is list
       return promisesArray.push(
-        populateList(firebase, get(originalData, p.child), p, results)
-      )
-    })
+        populateList(firebase, get(originalData, p.child), p, results),
+      );
+    });
   } else {
     // Data is a map of objects, each value has parameters to be populated
     forEach(originalData, (d, key) => {
       // generate populates for this data item if a fn was passed
       const populatesForDataItem = getPopulateObj(isFunction(populatesIn)
         ? populatesIn(key, d)
-        : populatesIn)
+        : populatesIn);
 
       // resolve each populate for this data item
       forEach(populatesForDataItem, (p) => {
         // get value of parameter to be populated (key or list of keys)
-        const idOrList = get(d, p.child)
+        const idOrList = get(d, p.child);
 
         // Parameter/child of list item does not exist
         if (!idOrList) {
-          return
+          return;
         }
 
         // Parameter of each list item is single ID
@@ -186,26 +186,26 @@ export const promisesForPopulate = (firebase, dataKey, originalData, populatesIn
               .then((v) => {
                 // write child to result object under root name if it is found
                 if (v) {
-                  set(results, `${p.root}.${idOrList}`, v)
+                  set(results, `${p.root}.${idOrList}`, v);
                 }
-                return results
-              })
-          )
+                return results;
+              }),
+          );
         }
 
         // Parameter of each list item is a list of ids
         if (isArray(idOrList) || isObject(idOrList)) {
           // Create single promise that includes a promise for each child
           return promisesArray.push(
-            populateList(firebase, idOrList, p, results)
-          )
+            populateList(firebase, idOrList, p, results),
+          );
         }
-      })
-    })
+      });
+    });
   }
 
   // Return original data after population promises run
-  return Promise.all(promisesArray).then(() => results)
-}
+  return Promise.all(promisesArray).then(() => results);
+};
 
-export default { promisesForPopulate }
+export default { promisesForPopulate };

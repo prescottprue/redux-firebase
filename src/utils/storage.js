@@ -9,5 +9,7 @@ export const deleteFile = (firebase, { path, dbPath }) =>
             .database()
             .ref(dbPath)
             .remove()
-            .then(() => ({ path, dbPath }))
-    )
+            .then(() => ({ path, dbPath })),
+    );
+
+export default { deleteFile };

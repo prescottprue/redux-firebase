@@ -6,7 +6,7 @@
  * import { constants } from 'react-redux-firebase'
  * constants.actionsPrefix === '@@reduxFirebase' // true
 */
-export const actionsPrefix = '@@reduxFirebase'
+export const actionsPrefix = '@@reduxFirebase';
 
 /**
  * @constant
@@ -77,8 +77,8 @@ export const actionTypes = {
   PROFILE_UPDATE_ERROR: `${actionsPrefix}/PROFILE_UPDATE_ERROR`,
   EMAIL_UPDATE_START: `${actionsPrefix}/EMAIL_UPDATE_START`,
   EMAIL_UPDATE_SUCCESS: `${actionsPrefix}/EMAIL_UPDATE_SUCCESS`,
-  EMAIL_UPDATE_ERROR: `${actionsPrefix}/EMAIL_UPDATE_ERROR`
-}
+  EMAIL_UPDATE_ERROR: `${actionsPrefix}/EMAIL_UPDATE_ERROR`,
+};
 
 /** @constant
  * @type {Object}
@@ -130,8 +130,8 @@ export const defaultConfig = {
   autoPopulateProfile: false,
   setProfilePopulateResults: false,
   dispatchOnUnsetListener: true,
-  enableEmptyAuthChanges: false
-}
+  enableEmptyAuthChanges: false,
+};
 
 /** @constant
  * @description List of all external auth providers that are supported
@@ -143,27 +143,27 @@ export const supportedAuthProviders = [
   'google',
   'github',
   'twitter',
-  'facebook'
-]
+  'facebook',
+];
 
 /** @constant
  * @description Parameters stored by path string instead of full path
  * @type {Array}
  * @private
 */
-export const metaParams = ['timestamp', 'requesting', 'requested']
+export const metaParams = ['timestamp', 'requesting', 'requested'];
 
 /** @constant
  * @description String Character used to split/join meta parameter keys
  * @type {Array}
  * @private
 */
-export const paramSplitChar = '/'
+export const paramSplitChar = '/';
 
 export default {
   actionTypes,
   defaultConfig,
   supportedAuthProviders,
   metaParams,
-  paramSplitChar
-}
+  paramSplitChar,
+};
