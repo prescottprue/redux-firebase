@@ -33,7 +33,7 @@ export const unWatchUserProfile = (firebase) => {
       .ref()
       .child(`${userProfile}/${authUid}`)
       .off('value', firebase._.profileWatch);
-    firebase._.profileWatch = null;
+    firebase._.profileWatch = null; // eslint-disable-line no-param-reassign
   }
 };
 
@@ -48,7 +48,7 @@ export const watchUserProfile = (dispatch, firebase) => {
   unWatchUserProfile(firebase);
 
   if (userProfile && firebase.database) {
-    firebase._.profileWatch = firebase.database()
+    firebase._.profileWatch = firebase.database() // eslint-disable-line no-param-reassign
       .ref()
       .child(`${userProfile}/${authUid}`)
       .on('value', (snap) => {
@@ -56,7 +56,10 @@ export const watchUserProfile = (dispatch, firebase) => {
           profileParamsToPopulate,
           autoPopulateProfile,
         } = firebase._.config;
-        if (!profileParamsToPopulate || (!isArray(profileParamsToPopulate) && !isString(profileParamsToPopulate))) {
+        if (
+          !profileParamsToPopulate ||
+          (!isArray(profileParamsToPopulate) && !isString(profileParamsToPopulate))
+        ) {
           dispatch({ type: actionTypes.SET_PROFILE, profile: snap.val() });
         } else {
           // TODO: Share population logic with query action
@@ -88,7 +91,8 @@ export const watchUserProfile = (dispatch, firebase) => {
 
 /**
  * @description Create user profile if it does not already exist. `updateProfileOnLogin: false`
- * can be passed to config to disable updating. Profile factory is applied if it exists and is a function.
+ * can be passed to config to disable updating. Profile factory is applied if
+ * it exists and is a function.
  * @param {Function} dispatch - Action dispatch function
  * @param {Object} firebase - Internal firebase object
  * @param {Object} userData - User data object (response from authenticating)
@@ -106,7 +110,7 @@ export const createUserProfile = (dispatch, firebase, userData, profile) => {
   if (isFunction(config.profileFactory)) {
     // catch errors in user provided profileFactory function
     try {
-      profile = config.profileFactory(userData, profile);
+      profile = config.profileFactory(userData, profile); // eslint-disable-line no-param-reassign
     } catch (err) {
       console.error('Error occured within profileFactory function:', err.message || err); // eslint-disable-line no-console
       return Promise.reject(err);
@@ -149,8 +153,12 @@ const setupPresence = (dispatch, firebase) => {
   const ref = firebase.database().ref();
   const { config: { presence, sessions }, authUid } = firebase._;
   const amOnline = ref.child('.info/connected');
-  const onlineRef = ref.child(isFunction(presence) ? presence(firebase.auth().currentUser, firebase) : presence).child(authUid);
-  let sessionsRef = isFunction(sessions) ? sessions(firebase.auth().currentUser, firebase) : sessions;
+  const onlineRef = ref.child(isFunction(presence)
+    ? presence(firebase.auth().currentUser, firebase)
+    : presence).child(authUid);
+  let sessionsRef = isFunction(sessions)
+  ? sessions(firebase.auth().currentUser, firebase)
+  : sessions;
   if (sessionsRef) {
     sessionsRef = ref.child(sessions);
   }
@@ -193,28 +201,30 @@ export const init = (dispatch, firebase) => {
   }
   dispatch({ type: actionTypes.AUTHENTICATION_INIT_STARTED });
   firebase.auth().onAuthStateChanged((authData) => {
+    const { config } = firebase._;
     if (!authData) {
       // Run onAuthStateChanged if it exists in config and enableEmptyAuthChanges is set to true
-      if (isFunction(firebase._.config.onAuthStateChanged) && firebase._.config.enableEmptyAuthChanges) {
+      if (isFunction(config.onAuthStateChanged) && config.enableEmptyAuthChanges) {
         firebase._.config.onAuthStateChanged(authData, firebase, dispatch);
       }
-      return dispatch({ type: actionTypes.LOGOUT });
-    }
 
-    firebase._.authUid = authData.uid;
+      dispatch({ type: actionTypes.AUTH_EMPTY_CHANGE });
+    } else {
+      firebase._.authUid = authData.uid; // eslint-disable-line no-param-reassign
 
-    // setup presence if settings and database exist
-    if (firebase._.config.presence && firebase.database && firebase.database.ServerValue) {
-      setupPresence(dispatch, firebase);
-    }
+      // setup presence if settings and database exist
+      if (config.presence && firebase.database && firebase.database.ServerValue) {
+        setupPresence(dispatch, firebase);
+      }
 
-    watchUserProfile(dispatch, firebase);
+      watchUserProfile(dispatch, firebase);
 
-    dispatch({ type: actionTypes.LOGIN, auth: authData });
+      dispatch({ type: actionTypes.LOGIN, auth: authData });
 
-    // Run onAuthStateChanged if it exists in config
-    if (isFunction(firebase._.config.onAuthStateChanged)) {
-      firebase._.config.onAuthStateChanged(authData, firebase, dispatch);
+      // Run onAuthStateChanged if it exists in config
+      if (isFunction(config.onAuthStateChanged)) {
+        config.onAuthStateChanged(authData, firebase, dispatch);
+      }
     }
   });
 
@@ -234,7 +244,7 @@ export const init = (dispatch, firebase) => {
         if (authData && authData.user) {
           const { user } = authData;
 
-          firebase._.authUid = user.uid;
+          firebase._.authUid = user.uid; // eslint-disable-line no-param-reassign
           watchUserProfile(dispatch, firebase);
 
           dispatch({ type: actionTypes.LOGIN, auth: user });
@@ -270,9 +280,12 @@ export const init = (dispatch, firebase) => {
  * @param {Object} credentials - Login credentials
  * @param {Object} credentials.email - Email to login with (only needed for email login)
  * @param {Object} credentials.password - Password to login with (only needed for email login)
- * @param {Object} credentials.provider - Provider name such as google, twitter (only needed for 3rd party provider login)
+ * @param {Object} credentials.provider - Provider name such as google, twitter
+ * (only needed for 3rd party provider login)
  * @param {Object} credentials.type - Popup or redirect (only needed for 3rd party provider login)
  * @param {Object} credentials.token - Custom or provider token
+ * @param {firebase.auth.AuthCredential} credentials.credential - Custom or provider token
+ * @param {Array|String} credentials.scopes - Scopes to add to provider (i.e. email)
  * @return {Promise}
  * @private
  */
@@ -341,7 +354,7 @@ export const logout = (dispatch, firebase) =>
         type: actionTypes.LOGOUT,
         preserve: firebase._.config.preserveOnLogout,
       });
-      firebase._.authUid = null;
+      firebase._.authUid = null; // eslint-disable-line no-param-reassign
       unWatchUserProfile(firebase);
       return firebase;
     });
@@ -404,16 +417,14 @@ export const resetPassword = (dispatch, firebase, email) => {
   return firebase.auth()
     .sendPasswordResetEmail(email)
     .catch((err) => {
-      if (err) {
-        switch (err.code) {
-          case 'auth/user-not-found':
-            dispatchLoginError(dispatch, new Error('The specified user account does not exist.'));
-            break;
-          default:
-            dispatchLoginError(dispatch, err);
-        }
-        return Promise.reject(err);
+      switch (err.code) {
+        case 'auth/user-not-found':
+          dispatchLoginError(dispatch, new Error('The specified user account does not exist.'));
+          break;
+        default:
+          dispatchLoginError(dispatch, err);
       }
+      return Promise.reject(err);
     });
 };
 
@@ -431,28 +442,26 @@ export const confirmPasswordReset = (dispatch, firebase, code, password) => {
   return firebase.auth()
     .confirmPasswordReset(code, password)
     .catch((err) => {
-      if (err) {
-        switch (err.code) {
-          case 'auth/expired-action-code':
-            dispatchLoginError(dispatch, new Error('The action code has expired.'));
-            break;
-          case 'auth/invalid-action-code':
-            dispatchLoginError(dispatch, new Error('The action code is invalid.'));
-            break;
-          case 'auth/user-disabled':
-            dispatchLoginError(dispatch, new Error('The user is disabled.'));
-            break;
-          case 'auth/user-not-found':
-            dispatchLoginError(dispatch, new Error('The user is not found.'));
-            break;
-          case 'auth/weak-password':
-            dispatchLoginError(dispatch, new Error('The password is not strong enough.'));
-            break;
-          default:
-            dispatchLoginError(dispatch, err);
-        }
-        return Promise.reject(err);
+      switch (err.code) {
+        case 'auth/expired-action-code':
+          dispatchLoginError(dispatch, new Error('The action code has expired.'));
+          break;
+        case 'auth/invalid-action-code':
+          dispatchLoginError(dispatch, new Error('The action code is invalid.'));
+          break;
+        case 'auth/user-disabled':
+          dispatchLoginError(dispatch, new Error('The user is disabled.'));
+          break;
+        case 'auth/user-not-found':
+          dispatchLoginError(dispatch, new Error('The user is not found.'));
+          break;
+        case 'auth/weak-password':
+          dispatchLoginError(dispatch, new Error('The password is not strong enough.'));
+          break;
+        default:
+          dispatchLoginError(dispatch, err);
       }
+      return Promise.reject(err);
     });
 };
 
@@ -486,9 +495,11 @@ export const verifyPasswordResetCode = (dispatch, firebase, code) => {
  * @private
  */
 export const updateProfile = (dispatch, firebase, profileUpdate) => {
-  dispatch({ type: actionTypes.PROFILE_UPDATE_START, payload: profileUpdate });
-
   const { database, _: { config, authUid } } = firebase;
+  dispatch({
+    type: actionTypes.PROFILE_UPDATE_START,
+    payload: profileUpdate,
+  });
   const profileRef = database().ref(`${config.userProfile}/${authUid}`);
   return profileRef
     .update(profileUpdate)
@@ -576,4 +587,77 @@ export const updateEmail = (dispatch, firebase, newEmail, updateInProfile) => {
       dispatch({ type: actionTypes.EMAIL_UPDATE_ERROR, payload });
       return Promise.reject(payload);
     });
+};
+
+/**
+ * @description Reload Auth state
+ * @param {Function} dispatch - Action dispatch function
+ * @param {Object} firebase - Internal firebase object
+ * @return {Promise} Resolves with auth
+ */
+export const reloadAuth = (dispatch, firebase) => {
+  dispatch({ type: actionTypes.AUTH_RELOAD_START });
+
+  // reject and dispatch error if not logged in
+  if (!firebase.auth().currentUser) {
+    const err = new Error('Must be logged in to reload auth');
+    dispatch({ type: actionTypes.AUTH_RELOAD_ERROR, payload: err });
+    return Promise.reject(err);
+  }
+
+  return firebase.auth().currentUser.reload()
+    .then(() => {
+      const auth = firebase.auth().currentUser;
+      dispatch({ type: actionTypes.AUTH_RELOAD_SUCCESS, payload: auth });
+      return auth;
+    })
+    .catch((err) => {
+      dispatch({ type: actionTypes.AUTH_RELOAD_ERROR, payload: err });
+      return Promise.reject(err);
+    });
+};
+
+/**
+ * @description Reload Auth state
+ * @param {Function} dispatch - Action dispatch function
+ * @param {Object} firebase - Internal firebase object
+ * @return {Promise} Resolves with auth
+ */
+export const linkWithCredential = (dispatch, firebase, credential) => {
+  dispatch({ type: actionTypes.AUTH_LINK_START });
+
+  // reject and dispatch error if not logged in
+  if (!firebase.auth().currentUser) {
+    const err = new Error('Must be logged in to linkWithCredential');
+    dispatch({ type: actionTypes.AUTH_LINK_ERROR, payload: err });
+    return Promise.reject(err);
+  }
+
+  return firebase.auth().currentUser.linkWithCredential(credential)
+    .then((auth) => {
+      dispatch({ type: actionTypes.AUTH_LINK_SUCCESS, payload: auth });
+      return auth;
+    })
+    .catch((err) => {
+      dispatch({ type: actionTypes.AUTH_LINK_ERROR, payload: err });
+      return Promise.reject(err);
+    });
+};
+
+export default {
+  dispatchLoginError,
+  unWatchUserProfile,
+  watchUserProfile,
+  init,
+  createUserProfile,
+  login,
+  logout,
+  createUser,
+  resetPassword,
+  confirmPasswordReset,
+  verifyPasswordResetCode,
+  updateAuth,
+  updateProfile,
+  updateEmail,
+  reloadAuth,
 };

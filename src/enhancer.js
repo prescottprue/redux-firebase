@@ -9,8 +9,8 @@ let firebaseInstance;
  * @name reactReduxFirebase
  * @external
  * @description Redux store enhancer that accepts configuration options and adds
- * store.firebase and store.firebaseAuth. Enhancers are most commonly placed in
- * redux's `compose` call along side applyMiddleware.
+ * store.firebase and store.firebaseAuth. Enhancers are most commonly placed in redux's `compose` call
+ * along side applyMiddleware.
  * @property {Object} firebaseInstance - Initiated firebase instance (can also
  * be library following Firebase JS API such as `react-native-firebase`)
  * @property {Object} config - Containing react-redux-firebase specific configuration
@@ -43,12 +43,10 @@ let firebaseInstance;
  * @property {Function} config.fileMetadataFactory - Factory for modifying
  * how file meta data is written during file uploads
  * @property {Array|String} config.profileParamsToPopulate - Parameters within
- * profile object to populate. As of `v2.0.0` data is only loaded for population,
- * not actually automatically populated (allows access to both unpopulated and
- * populated profile data).
- * @property {Boolean} config.autoPopulateProfile - **NOTE**: Not yet enabled
- * for v2.0.0. Whether or not to automatically populate profile with data loaded
- * through profileParamsToPopulate config. (default: `true`)
+ * profile object to populate. As of `v2.0.0` data is only loaded for population, not actually automatically populated
+ * (allows access to both unpopulated and populated profile data).
+ * @property {Boolean} config.autoPopulateProfile - **NOTE**: Not yet enabled for v2.0.0. Whether or not to
+ * automatically populate profile with data loaded through profileParamsToPopulate config. (default: `true`)
  * @property {Boolean} config.setProfilePopulateResults - Whether or not to
  * call SET actions for data that results from populating profile to redux under
  * the data path. For example role parameter on profile populated from 'roles'
@@ -85,15 +83,12 @@ export default (instance, otherConfig) => next =>
     const store = next(reducer, initialState, middleware);
 
     // firebase library or app instance not being passed in as first argument
-    if (!instance.SDK_VERSION && !instance.firebase_ && !instance.database) { // eslint-disable-line no-underscore-dangle, max-len
+    if (!instance.SDK_VERSION && !instance.firebase_ && !instance.database) {
       throw new Error('v2.0.0-beta and higher require passing a firebase app instance or a firebase library instance. View the migration guide for details.');
     }
 
     const configs = { ...defaultConfig, ...otherConfig };
-    firebaseInstance = createFirebaseInstance(
-      instance.firebase_ || instance, configs, // eslint-disable-line no-underscore-dangle
-      store.dispatch,
-    );
+    firebaseInstance = createFirebaseInstance(instance.firebase_ || instance, configs, store.dispatch);
 
     authActions.init(store.dispatch, firebaseInstance);
     store.firebase = firebaseInstance;

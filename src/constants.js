@@ -1,7 +1,7 @@
 /**
  * @constant
- * @description Prefix for all actions within library
  * @type {String}
+ * @description Prefix for all actions within library
  * @example
  * import { constants } from 'react-redux-firebase'
  * constants.actionsPrefix === '@@reduxFirebase' // true
@@ -12,43 +12,53 @@ export const actionsPrefix = '@@reduxFirebase';
  * @constant
  * @type {Object}
  * @description Object containing all action types
- * @property {String} START - `@@reactReduxFirebase/START`
- * @property {String} SET - `@@reactReduxFirebase/SET`
- * @property {String} SET_PROFILE - `@@reactReduxFirebase/SET_PROFILE`
- * @property {String} LOGIN - `@@reactReduxFirebase/LOGIN`
- * @property {String} LOGOUT - `@@reactReduxFirebase/LOGOUT`
- * @property {String} LOGIN_ERROR - `@@reactReduxFirebase/LOGIN_ERROR`
- * @property {String} NO_VALUE - `@@reactReduxFirebase/NO_VALUE`
- * @property {String} UNAUTHORIZED_ERROR - `@@reactReduxFirebase/UNAUTHORIZED_ERROR`
- * @property {String} SET_LISTENER - `@@reactReduxFirebase/SET_LISTENER`
- * @property {String} UNSET_LISTENER - `@@reactReduxFirebase/UNSET_LISTENER`
- * @property {String} AUTHENTICATION_INIT_STARTED - `@@reactReduxFirebase/AUTHENTICATION_INIT_STARTED`
- * @property {String} AUTHENTICATION_INIT_FINISHED - `@@reactReduxFirebase/AUTHENTICATION_INIT_FINISHED`
- * @property {String} SESSION_START - `@@reactReduxFirebase/SESSION_START`
- * @property {String} SESSION_END - `@@reactReduxFirebase/SESSION_END`
- * @property {String} FILE_UPLOAD_START - `@@reactReduxFirebase/FILE_UPLOAD_START`
- * @property {String} FILE_UPLOAD_ERROR - `@@reactReduxFirebase/FILE_UPLOAD_ERROR`
- * @property {String} FILE_UPLOAD_PROGRESS - `@@reactReduxFirebase/FILE_UPLOAD_PROGRESS`
- * @property {String} FILE_UPLOAD_COMPLETE - `@@reactReduxFirebase/FILE_UPLOAD_COMPLETE`
- * @property {String} FILE_DELETE_START - `@@reactReduxFirebase/FILE_DELETE_START`
- * @property {String} FILE_DELETE_ERROR - `@@reactReduxFirebase/FILE_DELETE_ERROR`
- * @property {String} FILE_DELETE_COMPLETE - `@@reactReduxFirebase/FILE_DELETE_COMPLETE`
- * @property {String} AUTH_UPDATE_START - `@@reactReduxFirebase/AUTH_UPDATE_START`
- * @property {String} AUTH_UPDATE_ERROR - `@@reactReduxFirebase/AUTH_UPDATE_ERROR`
- * @property {String} AUTH_UPDATE_COMPLETE - `@@reactReduxFirebase/AUTH_UPDATE_COMPLETE`
- * @property {String} PROFILE_UPDATE_START - `@@reactReduxFirebase/PROFILE_UPDATE_START`
- * @property {String} PROFILE_UPDATE_ERROR - `@@reactReduxFirebase/PROFILE_UPDATE_ERROR`
- * @property {String} PROFILE_UPDATE_COMPLETE - `@@reactReduxFirebase/PROFILE_UPDATE_COMPLETE`
- * @property {String} EMAIL_UPDATE_START - `@@reactReduxFirebase/EMAIL_UPDATE_START`
- * @property {String} EMAIL_UPDATE_ERROR - `@@reactReduxFirebase/EMAIL_UPDATE_ERROR`
- * @property {String} EMAIL_UPDATE_COMPLETE - `@@reactReduxFirebase/EMAIL_UPDATE_COMPLETE`
+ * @property {String} START - `@@reduxFirebase/START`
+ * @property {String} SET - `@@reduxFirebase/SET`
+ * @property {String} MERGE - `@@reduxFirebase/MERGE`
+ * @property {String} SET_PROFILE - `@@reduxFirebase/SET_PROFILE`
+ * @property {String} LOGIN - `@@reduxFirebase/LOGIN`
+ * @property {String} LOGOUT - `@@reduxFirebase/LOGOUT`
+ * @property {String} LOGIN_ERROR - `@@reduxFirebase/LOGIN_ERROR`
+ * @property {String} NO_VALUE - `@@reduxFirebase/NO_VALUE`
+ * @property {String} UNAUTHORIZED_ERROR - `@@reduxFirebase/UNAUTHORIZED_ERROR`
+ * @property {String} ERROR - `@@reduxFirebase/ERROR`
+ * @property {String} SET_LISTENER - `@@reduxFirebase/SET_LISTENER`
+ * @property {String} UNSET_LISTENER - `@@reduxFirebase/UNSET_LISTENER`
+ * @property {String} AUTHENTICATION_INIT_STARTED - `@@reduxFirebase/AUTHENTICATION_INIT_STARTED`
+ * @property {String} AUTHENTICATION_INIT_FINISHED - `@@reduxFirebase/AUTHENTICATION_INIT_FINISHED`
+ * @property {String} SESSION_START - `@@reduxFirebase/SESSION_START`
+ * @property {String} SESSION_END - `@@reduxFirebase/SESSION_END`
+ * @property {String} FILE_UPLOAD_START - `@@reduxFirebase/FILE_UPLOAD_START`
+ * @property {String} FILE_UPLOAD_ERROR - `@@reduxFirebase/FILE_UPLOAD_ERROR`
+ * @property {String} FILE_UPLOAD_PROGRESS - `@@reduxFirebase/FILE_UPLOAD_PROGRESS`
+ * @property {String} FILE_UPLOAD_COMPLETE - `@@reduxFirebase/FILE_UPLOAD_COMPLETE`
+ * @property {String} FILE_DELETE_START - `@@reduxFirebase/FILE_DELETE_START`
+ * @property {String} FILE_DELETE_ERROR - `@@reduxFirebase/FILE_DELETE_ERROR`
+ * @property {String} FILE_DELETE_COMPLETE - `@@reduxFirebase/FILE_DELETE_COMPLETE`
+ * @property {String} AUTH_UPDATE_START - `@@reduxFirebase/AUTH_UPDATE_START`
+ * @property {String} AUTH_UPDATE_ERROR - `@@reduxFirebase/AUTH_UPDATE_ERROR`
+ * @property {String} AUTH_UPDATE_SUCCESS - `@@reduxFirebase/AUTH_UPDATE_SUCCESS`
+ * @property {String} PROFILE_UPDATE_START - `@@reduxFirebase/PROFILE_UPDATE_START`
+ * @property {String} PROFILE_UPDATE_ERROR - `@@reduxFirebase/PROFILE_UPDATE_ERROR`
+ * @property {String} PROFILE_UPDATE_SUCCESS - `@@reduxFirebase/PROFILE_UPDATE_SUCCESS`
+ * @property {String} EMAIL_UPDATE_START - `@@reduxFirebase/EMAIL_UPDATE_START`
+ * @property {String} EMAIL_UPDATE_ERROR - `@@reduxFirebase/EMAIL_UPDATE_ERROR`
+ * @property {String} EMAIL_UPDATE_SUCCESS - `@@reduxFirebase/EMAIL_UPDATE_SUCCESS`
+ * @property {String} AUTH_RELOAD_START - `@@reduxFirebase/AUTH_RELOAD_START`
+ * @property {String} AUTH_RELOAD_ERROR - `@@reduxFirebase/AUTH_RELOAD_ERROR`
+ * @property {String} AUTH_RELOAD_SUCCESS - `@@reduxFirebase/AUTH_RELOAD_SUCCESS`
+ * @property {String} AUTH_LINK_START - `@@reduxFirebase/AUTH_LINK_START`
+ * @property {String} AUTH_LINK_ERROR - `@@reduxFirebase/AUTH_LINK_ERROR`
+ * @property {String} AUTH_LINK_SUCCESS - `@@reduxFirebase/AUTH_LINK_SUCCESS`
+ * @property {String} AUTH_EMPTY_CHANGE - `@@reduxFirebase/AUTH_LINK_SUCCESS`
  * @example
  * import { actionTypes } from 'react-redux-firebase'
- * actionTypes.SET === '@@reactReduxFirebase/SET' // true
+ * actionTypes.SET === '@@reduxFirebase/SET' // true
 */
 export const actionTypes = {
   START: `${actionsPrefix}/START`,
   SET: `${actionsPrefix}/SET`,
+  MERGE: `${actionsPrefix}/MERGE`,
   SET_PROFILE: `${actionsPrefix}/SET_PROFILE`,
   LOGIN: `${actionsPrefix}/LOGIN`,
   LOGOUT: `${actionsPrefix}/LOGOUT`,
@@ -78,9 +88,17 @@ export const actionTypes = {
   EMAIL_UPDATE_START: `${actionsPrefix}/EMAIL_UPDATE_START`,
   EMAIL_UPDATE_SUCCESS: `${actionsPrefix}/EMAIL_UPDATE_SUCCESS`,
   EMAIL_UPDATE_ERROR: `${actionsPrefix}/EMAIL_UPDATE_ERROR`,
+  AUTH_RELOAD_START: `${actionsPrefix}/AUTH_RELOAD_START`,
+  AUTH_RELOAD_ERROR: `${actionsPrefix}/AUTH_RELOAD_ERROR`,
+  AUTH_RELOAD_SUCCESS: `${actionsPrefix}/AUTH_RELOAD_SUCCESS`,
+  AUTH_LINK_START: `${actionsPrefix}/AUTH_LINK_START`,
+  AUTH_LINK_ERROR: `${actionsPrefix}/AUTH_LINK_ERROR`,
+  AUTH_LINK_SUCCESS: `${actionsPrefix}/AUTH_LINK_SUCCESS`,
+  AUTH_EMPTY_CHANGE: `${actionsPrefix}/AUTH_EMPTY_CHANGE`,
 };
 
-/** @constant
+/**
+ * @constant
  * @type {Object}
  * @name defaultConfig
  * @description Default configuration options
@@ -98,6 +116,8 @@ export const actionTypes = {
  * logging out.
  * @property {Boolean} updateProfileOnLogin - `true` Whether or not to update
  * user profile when logging in.
+ * @property {Boolean} resetBeforeLogin - `true` Whether or not to reset auth
+ * and profile when logging in (see issue #254 for more details).
  * @property {Boolean} enableRedirectHandling - `true` Whether or not to enable
  * redirect handling. This must be disabled if environment is not http/https
  * such as with react-native.
@@ -111,13 +131,19 @@ export const actionTypes = {
  * profileParamsToPopulate config.
  * @property {Boolean} setProfilePopulateResults - `true` Whether or not to
  * call SET actions for data that results from populating profile to redux under
- * the data path. For example: role paramter on profile populated from 'roles'
+ * the data path. For example role parameter on profile populated from 'roles'
  * root. True will call SET_PROFILE as well as a SET action with the role that
  * is loaded (places it in data/roles).
  * @property {Boolean} dispatchOnUnsetListener - `false` Whether or not to
  * dispatch UNSET_LISTENER when disabling listeners for a specific path. USE WITH CAUTION
  * Setting this to true allows an action to be called that removes data
  * from redux (which might not always be expected).
+ * @property {String} firebaseStateName - 'firebase' Assumed name of Firebase
+ * state (name given when passing reducer to combineReducers). Used in
+ * firebaseAuthIsReady promise (see #264).
+ * @property {Boolean} attachAuthIsReady - `true` Whether or not to attach
+ * firebaseAuthIsReady to store. authIsLoaded can be imported and used
+ * directly instead based on preference.
  * @type {Object}
 */
 export const defaultConfig = {
@@ -125,18 +151,22 @@ export const defaultConfig = {
   presence: null,
   sessions: 'sessions',
   enableLogging: false,
+  resetBeforeLogin: true,
   updateProfileOnLogin: true,
   enableRedirectHandling: true,
   autoPopulateProfile: false,
   setProfilePopulateResults: false,
   dispatchOnUnsetListener: true,
   enableEmptyAuthChanges: false,
+  firebaseStateName: 'firebase',
+  attachAuthIsReady: true,
 };
 
-/** @constant
+/**
+ * @constant
+ * @type {Array}
  * @description List of all external auth providers that are supported
  * (firebase's email/anonymous included by default).
- * @type {Array}
  * @private
 */
 export const supportedAuthProviders = [
@@ -146,24 +176,15 @@ export const supportedAuthProviders = [
   'facebook',
 ];
 
-/** @constant
- * @description Parameters stored by path string instead of full path
+/**
+ * @constant
+ * @description Top level redux paths that can be populated
  * @type {Array}
  * @private
-*/
-export const metaParams = ['timestamp', 'requesting', 'requested'];
-
-/** @constant
- * @description String Character used to split/join meta parameter keys
- * @type {Array}
- * @private
-*/
-export const paramSplitChar = '/';
+ */
+export const topLevelPaths = ['auth', 'profile', 'ordered', 'data'];
 
 export default {
   actionTypes,
   defaultConfig,
-  supportedAuthProviders,
-  metaParams,
-  paramSplitChar,
 };

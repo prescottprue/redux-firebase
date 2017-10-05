@@ -12,18 +12,18 @@ import { authActions, queryActions, storageActions } from './actions';
 export const createFirebaseInstance = (firebase, configs, dispatch) => {
   /* istanbul ignore next: Logging is external */
   // Enable Logging based on config (handling instances without i.e RNFirebase)
-  if (configs.enableLogging && typeof firebase.database.enableLogging === 'function') {
+  if (
+    configs.enableLogging &&
+    firebase.database &&
+    typeof firebase.database.enableLogging === 'function'
+  ) {
     firebase.database.enableLogging(configs.enableLogging);
   }
 
-  const rootRef = firebase.database().ref();
-
-  const instance = Object.defineProperty(firebase, '_', {
-    value: {
-      watchers: {},
-      config: configs,
-      authUid: null,
-    },
+  // Add internal variables to firebase instance
+  const defaultInternals = { watchers: {}, config: configs, authUid: null };
+  Object.defineProperty(firebase, '_', {
+    value: defaultInternals,
     writable: true,
     enumerable: true,
     configurable: true,
@@ -45,12 +45,12 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
         ...value,
         [`${prefix}At`]: firebase.database.ServerValue.TIMESTAMP,
       };
-      if (instance.auth().currentUser) {
-        dataWithMeta[`${prefix}By`] = instance.auth().currentUser.uid;
+      if (firebase.auth().currentUser) {
+        dataWithMeta[`${prefix}By`] = firebase.auth().currentUser.uid;
       }
-      return rootRef.child(path)[method](dataWithMeta, onComplete);
+      return firebase.database().ref(path)[method](dataWithMeta, onComplete);
     }
-    return rootRef.child(path)[method](value, onComplete);
+    return firebase.database().ref(path)[method](value, onComplete);
   };
 
   /**
@@ -71,7 +71,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * export default firebaseConnect()(Example)
    */
   const set = (path, value, onComplete) =>
-    rootRef.child(path).set(value, onComplete);
+    firebase.database().ref(path).set(value, onComplete);
 
   /**
    * @description Sets data to Firebase along with meta data. Currently,
@@ -104,7 +104,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * export default firebaseConnect()(Example)
    */
   const push = (path, value, onComplete) =>
-    rootRef.child(path).push(value, onComplete);
+    firebase.database().ref(path).push(value, onComplete);
 
   /**
    * @description Pushes data to Firebase along with meta data. Currently,
@@ -135,7 +135,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * export default firebaseConnect()(Example)
    */
   const update = (path, value, onComplete) =>
-    rootRef.child(path).update(value, onComplete);
+    firebase.database().ref(path).update(value, onComplete);
 
   /**
    * @description Updates data on Firebase along with meta. *Warning*
@@ -166,7 +166,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * export default firebaseConnect()(Example)
    */
   const remove = (path, onComplete) =>
-    rootRef.child(path).remove(onComplete);
+    firebase.database().ref(path).remove(onComplete);
 
   /**
    * @description Sets data to Firebase only if the path does not already
@@ -188,7 +188,8 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * export default firebaseConnect()(Example)
    */
   const uniqueSet = (path, value, onComplete) =>
-    rootRef.child(path)
+    firebase.database()
+      .ref(path)
       .transaction(d => d === null ? value : undefined)
       .then(({ committed, snapshot }) => {
         if (!committed) {
@@ -210,7 +211,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * @return {Promise} Containing the File object
    */
   const uploadFile = (path, file, dbPath) =>
-    storageActions.uploadFile(dispatch, instance, { path, file, dbPath });
+    storageActions.uploadFile(dispatch, firebase, { path, file, dbPath });
 
   /**
    * @description Upload multiple files to Firebase Storage with the option
@@ -222,7 +223,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * @return {Promise} Containing an array of File objects
    */
   const uploadFiles = (path, files, dbPath) =>
-    storageActions.uploadFiles(dispatch, instance, { path, files, dbPath });
+    storageActions.uploadFiles(dispatch, firebase, { path, files, dbPath });
 
   /**
    * @description Delete a file from Firebase Storage with the option to
@@ -232,7 +233,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * @return {Promise} Containing the File object
    */
   const deleteFile = (path, dbPath) =>
-    storageActions.deleteFile(dispatch, instance, { path, dbPath });
+    storageActions.deleteFile(dispatch, firebase, { path, dbPath });
 
   /**
    * @description Watch event. **Note:** this method is used internally
@@ -242,8 +243,8 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * @param {String} storeAs - Name of listener results within redux store
    * @return {Promise}
    */
-  const watchEvent = (type, path, opts) =>
-    queryActions.watchEvent(instance, dispatch, { type, path, ...opts });
+  const watchEvent = (type, path, storeAs) =>
+    queryActions.watchEvent(firebase, dispatch, { type, path, storeAs });
 
   /**
    * @description Unset a listener watch event. **Note:** this method is used
@@ -255,7 +256,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * @return {Promise}
    */
   const unWatchEvent = (type, path, queryId = undefined) =>
-    queryActions.unWatchEvent(instance, dispatch, { type, path, queryId });
+    queryActions.unWatchEvent(firebase, dispatch, { type, path, queryId });
 
   /**
    * @description Logs user into Firebase. For examples, visit the [auth section](/docs/auth.md)
@@ -268,7 +269,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * @return {Promise} Containing user's auth data
    */
   const login = credentials =>
-    authActions.login(dispatch, instance, credentials);
+    authActions.login(dispatch, firebase, credentials);
 
   /**
    * @description Logs user out of Firebase and empties firebase state from
@@ -276,7 +277,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * @return {Promise}
    */
   const logout = () =>
-    authActions.logout(dispatch, instance);
+    authActions.logout(dispatch, firebase);
 
   /**
    * @description Creates a new user in Firebase authentication. If
@@ -289,7 +290,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * @return {Promise} Containing user's auth data
    */
   const createUser = (credentials, profile) =>
-    authActions.createUser(dispatch, instance, credentials, profile);
+    authActions.createUser(dispatch, firebase, credentials, profile);
 
   /**
    * @description Sends password reset email
@@ -298,7 +299,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * @return {Promise}
    */
   const resetPassword = credentials =>
-    authActions.resetPassword(dispatch, instance, credentials);
+    authActions.resetPassword(dispatch, firebase, credentials);
 
   /**
    * @description Confirm that a user's password has been reset
@@ -307,7 +308,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * @return {Promise}
    */
   const confirmPasswordReset = (code, password) =>
-    authActions.confirmPasswordReset(dispatch, instance, code, password);
+    authActions.confirmPasswordReset(dispatch, firebase, code, password);
 
   /**
    * @description Verify that a password reset code from a password reset
@@ -316,7 +317,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * @return {Promise} Containing user auth info
    */
   const verifyPasswordResetCode = code =>
-    authActions.verifyPasswordResetCode(dispatch, instance, code);
+    authActions.verifyPasswordResetCode(dispatch, firebase, code);
 
   /**
    * @description Update user profile
@@ -324,7 +325,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * @return {Promise}
    */
   const updateProfile = profileUpdate =>
-    authActions.updateProfile(dispatch, instance, profileUpdate);
+    authActions.updateProfile(dispatch, firebase, profileUpdate);
 
   /**
    * @description Update Auth Object
@@ -333,7 +334,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * @return {Promise}
    */
   const updateAuth = (authUpdate, updateInProfile) =>
-    authActions.updateAuth(dispatch, instance, authUpdate, updateInProfile);
+    authActions.updateAuth(dispatch, firebase, authUpdate, updateInProfile);
 
   /**
    * @description Update user's email
@@ -342,7 +343,21 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * @return {Promise}
    */
   const updateEmail = (newEmail, updateInProfile) =>
-    authActions.updateEmail(dispatch, instance, newEmail, updateInProfile);
+    authActions.updateEmail(dispatch, firebase, newEmail, updateInProfile);
+
+  /**
+   * @description Reload user's auth object. Must be authenticated.
+   * @return {Promise}
+   */
+  const reloadAuth = () => authActions.reloadAuth(dispatch, firebase);
+
+  /**
+   * @description Links the user account with the given credentials.
+   * @param {firebase.auth.AuthCredential} credential - The auth credential
+   * @return {Promise}
+   */
+  const linkWithCredential = credential =>
+    authActions.linkWithCredential(dispatch, firebase, credential);
 
   /**
    * @name ref
@@ -388,13 +403,11 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
     verifyPasswordResetCode,
     watchEvent,
     unWatchEvent,
+    reloadAuth,
+    linkWithCredential,
   };
 
-  return {
-    ...instance,
-    ...helpers,
-    helpers,
-  };
+  return Object.assign(firebase, helpers, { helpers });
 };
 
-export default { createFirebaseInstance };
+export default createFirebaseInstance;

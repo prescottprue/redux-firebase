@@ -55,8 +55,17 @@ const createAuthProvider = (firebase, providerName, scopes) => {
  * @param {Array|String} credentials.scopes - Scopes to add to provider (i.e. email)
  * @private
  */
-export const getLoginMethodAndParams = (firebase, creds) => {
-  const { email, password, provider, type, token, scopes, credential } = creds;
+export const getLoginMethodAndParams = (firebase, credentials) => {
+  const {
+    email,
+    password,
+    provider,
+    type,
+    token,
+    scopes,
+    credential,
+  } = credentials;
+
   if (credential) {
     return { method: 'signInWithCredential', params: [credential] };
   }
@@ -96,24 +105,25 @@ const isAuthReady = (store, stateName) => {
  * @param {Object} store - The Redux store on which we want to detect if
  * Firebase auth is ready.
  * @param {string} [stateName] - The attribute name of the react-redux-firebase
- * reducer when using multiple combined reducers. 'firebaseState' by default.
- * Set this to `null` to indicate that the react-redux-firebase reducer is not
- * in a combined reducer.
+ * reducer when using multiple combined reducers. 'firebase' by default. Set
+ * this to `null` to indicate that the react-redux-firebase reducer is not in a
+ * combined reducer.
  * @return {Promise} - A promise that completes when Firebase auth is ready
  * in the store.
  */
-export const authIsReady = (store, stateName = 'firebaseState') => new Promise((resolve) => {
-  if (isAuthReady(store, stateName)) {
-    resolve();
-  } else {
-    const unsubscribe = store.subscribe(() => {
-      if (isAuthReady(store, stateName)) {
-        unsubscribe();
-        resolve();
-      }
-    });
-  }
-});
+export const authIsReady = (store, stateName = 'firebase') =>
+  new Promise((resolve) => {
+    if (isAuthReady(store, stateName)) {
+      resolve();
+    } else {
+      const unsubscribe = store.subscribe(() => {
+        if (isAuthReady(store)) {
+          unsubscribe();
+          resolve();
+        }
+      });
+    }
+  });
 
 /**
  * Function that creates and authIsReady promise

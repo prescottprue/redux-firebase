@@ -1,6 +1,6 @@
 import { actionTypes } from '../constants';
 import { promisesForPopulate } from './populate';
-import { isNaN, forEach, isObject, size } from 'lodash';
+import { isNaN, forEach, size } from 'lodash';
 
 const tryParseToNumber = (value) => {
   const result = Number(value);
@@ -98,14 +98,15 @@ export const getWatcherCount = (firebase, event, path, queryId = undefined) => {
 export const unsetWatcher = (firebase, dispatch, event, path, queryId = undefined) => {
   const id = queryId || getQueryIdFromPath(path, event) || getWatchPath(event, path);
   path = path.split('#')[0];
-  if (firebase._.watchers[id] <= 1) {
-    delete firebase._.watchers[id];
+  const { watchers } = firebase._;
+  if (watchers[id] <= 1) {
+    delete watchers[id];
     if (event !== 'first_child' && event !== 'once') {
       firebase.database().ref().child(path).off(event);
       // TODO: Remove config.distpatchOnUnsetListener
     }
-  } else if (firebase._.watchers[id]) {
-    firebase._.watchers[id]--;
+  } else if (watchers[id]) {
+    watchers[id]--;
   }
 
   dispatch({ type: actionTypes.UNSET_LISTENER, path, payload: { id } });
@@ -182,17 +183,21 @@ export const applyParamsToQuery = (queryParams, query) => {
 
 /**
  * Get ordered array from snapshot
- * @param  {firebase.database.DataSnapshot} snapshot [description]
- * @return {Array} Ordered list of children from snapshot
+ * @param  {firebase.database.DataSnapshot} snapshot - Data for which to create
+ * an ordered array.
+ * @return {Array|Null} Ordered list of children from snapshot or null
  */
-export const orderedFromSnapshot = (snapshot) => {
+export const orderedFromSnapshot = (snap) => {
+  if (snap.hasChildren && !snap.hasChildren()) {
+    return null;
+  }
   const ordered = [];
-  if (snapshot.forEach) {
-    snapshot.forEach((child) => {
+  if (snap.forEach) {
+    snap.forEach((child) => {
       ordered.push({ key: child.key, value: child.val() });
     });
   }
-  return size(ordered) ? ordered : undefined;
+  return size(ordered) ? ordered : null;
 };
 
 /**

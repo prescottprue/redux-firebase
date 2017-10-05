@@ -1,18 +1,20 @@
+import { createFirebaseInstance } from './createFirebaseInstance';
 import enhancer, { getFirebase } from './enhancer';
 import reducer from './reducer';
-import { CALL_FIREBASE } from './middleware';
 import constants, { actionTypes } from './constants';
-// import * as helpers from './helpers'
+import { authIsReady } from './utils/auth';
+import * as helpers from './helpers';
 
 export default {
+  createFirebaseInstance,
   firebaseStateReducer: reducer,
-  firebaseReducer: reducer,
-  reducer,
-  CALL_FIREBASE,
+  reduxReactFirebase: enhancer,
+  reactReduxFirebase: enhancer,
   reduxFirebase: enhancer,
-  enhancer,
   constants,
   actionTypes,
   getFirebase,
-  // ...helpers
+  authIsReady,
+  helpers,
+  ...helpers,
 };
