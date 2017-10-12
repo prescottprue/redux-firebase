@@ -25,7 +25,15 @@ export const watchEvent = (firebase, dispatch, options) => {
   if (!firebase.database || typeof firebase.database !== 'function') {
     throw new Error('Firebase database is required to create watchers');
   }
-  const { type, path, populates, queryParams, queryId, isQuery, storeAs } = options;
+  const {
+    type,
+    path,
+    populates,
+    queryParams,
+    queryId,
+    isQuery,
+    storeAs,
+  } = options;
   const watchPath = !storeAs ? path : `${path}@${storeAs}`;
   const id = queryId || getQueryIdFromPath(path);
   const counter = getWatcherCount(firebase, type, watchPath, id);
@@ -41,7 +49,8 @@ export const watchEvent = (firebase, dispatch, options) => {
   setWatcher(firebase, dispatch, type, watchPath, id);
 
   if (type === 'first_child') {
-    return firebase.database() // eslint-disable-line consistent-return
+    return firebase
+      .database() // eslint-disable-line consistent-return
       .ref()
       .child(path)
       .orderByKey()
@@ -65,7 +74,10 @@ export const watchEvent = (firebase, dispatch, options) => {
       });
   }
 
-  let query = firebase.database().ref().child(path);
+  let query = firebase
+    .database()
+    .ref()
+    .child(path);
 
   if (isQuery) {
     query = applyParamsToQuery(queryParams, query);
@@ -75,7 +87,8 @@ export const watchEvent = (firebase, dispatch, options) => {
 
   // Handle once queries
   if (type === 'once') {
-    return query.once('value') // eslint-disable-line consistent-return
+    return query
+      .once('value') // eslint-disable-line consistent-return
       .then((snapshot) => {
         if (snapshot.val() === null) {
           return dispatch({
@@ -113,34 +126,40 @@ export const watchEvent = (firebase, dispatch, options) => {
   // Handle all other queries
 
   /* istanbul ignore next: is run by tests but doesn't show in coverage */
-  query.on(type, (snapshot) => {
-    const data = (type === 'child_removed') ? undefined : snapshot.val();
-    const resultPath = storeAs || (type === 'value') ? path : `${path}/${snapshot.key}`;
+  query.on(
+    type,
+    (snapshot) => {
+      const data = type === 'child_removed' ? undefined : snapshot.val();
+      const resultPath =
+        storeAs || type === 'value' ? path : `${path}/${snapshot.key}`;
 
-    // Dispatch standard event if no populates exists
-    if (!populates) {
-      // create an array for preserving order of children under ordered
-      const ordered = type === 'child_added'
-        ? [{ key: snapshot.key, value: snapshot.val() }]
-        : orderedFromSnapshot(snapshot);
-      return dispatch({
-        type: actionTypes.SET,
-        path: storeAs || resultPath,
-        data,
-        ordered,
+      // Dispatch standard event if no populates exists
+      if (!populates) {
+        // create an array for preserving order of children under ordered
+        const ordered =
+          type === 'child_added'
+            ? [{ key: snapshot.key, value: snapshot.val() }]
+            : orderedFromSnapshot(snapshot);
+        return dispatch({
+          type: actionTypes.SET,
+          path: storeAs || resultPath,
+          data,
+          ordered,
+        });
+      }
+      // populate and dispatch associated actions if populates exist
+      return populateAndDispatch(firebase, dispatch, {
+        path,
+        storeAs,
+        snapshot,
+        data: snapshot.val(),
+        populates,
       });
-    }
-    // populate and dispatch associated actions if populates exist
-    return populateAndDispatch(firebase, dispatch, {
-      path,
-      storeAs,
-      snapshot,
-      data: snapshot.val(),
-      populates,
-    });
-  }, (err) => {
-    dispatch({ type: actionTypes.ERROR, payload: err });
-  });
+    },
+    (err) => {
+      dispatch({ type: actionTypes.ERROR, payload: err });
+    },
+  );
 };
 
 /**
@@ -153,7 +172,11 @@ export const watchEvent = (firebase, dispatch, options) => {
  * @param {String} options.storeAs - storeAs path of watcher to remove
  * @param {String} options.queryId - id of query for which to unset watcher
  */
-export const unWatchEvent = (firebase, dispatch, { type, path, storeAs, queryId }) => {
+export const unWatchEvent = (
+  firebase,
+  dispatch,
+  { type, path, storeAs, queryId },
+) => {
   const watchPath = !storeAs ? path : `${path}@${storeAs}`;
   unsetWatcher(firebase, dispatch, type, watchPath, queryId);
 };
@@ -165,9 +188,7 @@ export const unWatchEvent = (firebase, dispatch, { type, path, storeAs, queryId 
  * @param {Array} events - List of events for which to add watchers
  */
 export const watchEvents = (firebase, dispatch, events) =>
-    events.forEach(event =>
-      watchEvent(firebase, dispatch, event),
-    );
+  events.forEach(event => watchEvent(firebase, dispatch, event));
 
 /**
  * @description Remove watchers from a list of events
@@ -175,8 +196,6 @@ export const watchEvents = (firebase, dispatch, events) =>
  * @param {Array} events - List of events for which to remove watchers
  */
 export const unWatchEvents = (firebase, dispatch, events) =>
-  events.forEach(event =>
-    unWatchEvent(firebase, dispatch, event),
-  );
+  events.forEach(event => unWatchEvent(firebase, dispatch, event));
 
 export default { watchEvents, unWatchEvents };

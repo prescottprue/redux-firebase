@@ -13,19 +13,18 @@ export const pathStrToObj = (path) => {
   // If Query id exists split params from path
   if (queryId) {
     const pathArray = path.split('#');
-    pathObj = Object.assign(
-      {},
-      pathObj,
-      {
-        queryId,
-        isQuery: true,
-        path: pathArray[0],
-        queryParams: pathArray[1].split('&'),
-      },
-    );
+    pathObj = Object.assign({}, pathObj, {
+      queryId,
+      isQuery: true,
+      path: pathArray[0],
+      queryParams: pathArray[1].split('&'),
+    });
     if (getPopulates(pathArray[1].split('&'))) {
       pathObj.populates = getPopulates(pathArray[1].split('&'));
-      pathObj.queryParams = remove(pathArray[1].split('&'), p => p.indexOf('populate') === -1);
+      pathObj.queryParams = remove(
+        pathArray[1].split('&'),
+        p => p.indexOf('populate') === -1,
+      );
     }
   }
   // if queryId does not exist, return original pathObj
@@ -57,7 +56,9 @@ export const getEventsFromInput = paths =>
 
     if (isObject(path)) {
       if (!path.path) {
-        throw new Error('Path is a required parameter within definition object');
+        throw new Error(
+          'Path is a required parameter within definition object',
+        );
       }
       let strPath = path.path;
 
@@ -71,7 +72,9 @@ export const getEventsFromInput = paths =>
       return [path];
     }
 
-    throw new Error(`Invalid Path Definition: ${path}. Only strings, objects, and arrays accepted.`);
+    throw new Error(
+      `Invalid Path Definition: ${path}. Only strings, objects, and arrays accepted.`,
+    );
   });
 
 export default { getEventsFromInput };

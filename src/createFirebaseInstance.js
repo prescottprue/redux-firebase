@@ -48,9 +48,15 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
       if (firebase.auth().currentUser) {
         dataWithMeta[`${prefix}By`] = firebase.auth().currentUser.uid;
       }
-      return firebase.database().ref(path)[method](dataWithMeta, onComplete);
+      return firebase
+        .database()
+        .ref(path)
+        [method](dataWithMeta, onComplete);
     }
-    return firebase.database().ref(path)[method](value, onComplete);
+    return firebase
+      .database()
+      .ref(path)
+      [method](value, onComplete);
   };
 
   /**
@@ -71,7 +77,10 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * export default firebaseConnect()(Example)
    */
   const set = (path, value, onComplete) =>
-    firebase.database().ref(path).set(value, onComplete);
+    firebase
+      .database()
+      .ref(path)
+      .set(value, onComplete);
 
   /**
    * @description Sets data to Firebase along with meta data. Currently,
@@ -84,7 +93,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * @return {Promise} Containing reference snapshot
    */
   const setWithMeta = (path, value, onComplete) =>
-     withMeta('set', path, value, onComplete);
+    withMeta('set', path, value, onComplete);
 
   /**
    * @description Pushes data to Firebase.
@@ -104,7 +113,10 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * export default firebaseConnect()(Example)
    */
   const push = (path, value, onComplete) =>
-    firebase.database().ref(path).push(value, onComplete);
+    firebase
+      .database()
+      .ref(path)
+      .push(value, onComplete);
 
   /**
    * @description Pushes data to Firebase along with meta data. Currently,
@@ -135,7 +147,10 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * export default firebaseConnect()(Example)
    */
   const update = (path, value, onComplete) =>
-    firebase.database().ref(path).update(value, onComplete);
+    firebase
+      .database()
+      .ref(path)
+      .update(value, onComplete);
 
   /**
    * @description Updates data on Firebase along with meta. *Warning*
@@ -166,7 +181,10 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * export default firebaseConnect()(Example)
    */
   const remove = (path, onComplete) =>
-    firebase.database().ref(path).remove(onComplete);
+    firebase
+      .database()
+      .ref(path)
+      .remove(onComplete);
 
   /**
    * @description Sets data to Firebase only if the path does not already
@@ -188,9 +206,10 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * export default firebaseConnect()(Example)
    */
   const uniqueSet = (path, value, onComplete) =>
-    firebase.database()
+    firebase
+      .database()
       .ref(path)
-      .transaction(d => d === null ? value : undefined)
+      .transaction(d => (d === null ? value : undefined))
       .then(({ committed, snapshot }) => {
         if (!committed) {
           const newError = new Error('Path already exists.');
@@ -276,8 +295,7 @@ export const createFirebaseInstance = (firebase, configs, dispatch) => {
    * redux store
    * @return {Promise}
    */
-  const logout = () =>
-    authActions.logout(dispatch, firebase);
+  const logout = () => authActions.logout(dispatch, firebase);
 
   /**
    * @description Creates a new user in Firebase authentication. If

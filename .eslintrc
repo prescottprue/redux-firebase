@@ -2,8 +2,8 @@ root: true
 
 parser: babel-eslint
 
-extends: [airbnb]
-plugins: [babel]
+extends: [prettier, airbnb]
+plugins: [babel, prettier]
 
 env:
   browser: true

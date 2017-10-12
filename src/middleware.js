@@ -15,19 +15,19 @@ function callFirebase(firebaseInstance, callInfoObj) {
   if (!namespace && firebaseInstance.database) {
     // Make firebase method call with array of params
     return !methodArgs
-    ? firebaseInstance.database()[method]
-    : firebaseInstance.database()[method]
-      .apply(this, methodArgs);
+      ? firebaseInstance.database()[method]
+      : firebaseInstance.database()[method].apply(this, methodArgs);
   }
   const fbNamespace = firebaseInstance[namespace];
   if (!fbNamespace || !isFunction(fbNamespace)) {
-    throw new Error('Invalid namespace. Must be firestore, database, messaging, auth, or storage');
+    throw new Error(
+      'Invalid namespace. Must be firestore, database, messaging, auth, or storage',
+    );
   }
   // Make devshare method call with array of params
   return !methodArgs
-  ? fbNamespace()[method]
-  : fbNamespace()[method]
-    .apply(this, methodArgs);
+    ? fbNamespace()[method]
+    : fbNamespace()[method].apply(this, methodArgs);
 }
 
 // Action key that carries API call info interpreted by this Redux middleware.
@@ -45,22 +45,18 @@ export const CALL_FIREBASE = Symbol('Call Firebase');
 async function actionWith(descriptor, args) {
   const newDescriptor = {};
   try {
-    newDescriptor.payload = await (
-      typeof newDescriptor.payload === 'function' ?
-      newDescriptor.payload(...args) :
-      newDescriptor.payload
-    );
+    newDescriptor.payload = await (typeof newDescriptor.payload === 'function'
+      ? newDescriptor.payload(...args)
+      : newDescriptor.payload);
   } catch (e) {
     newDescriptor.payload = new InternalError(e.message);
     newDescriptor.error = true;
   }
 
   try {
-    newDescriptor.meta = await (
-      typeof newDescriptor.meta === 'function' ?
-      newDescriptor.meta(...args) :
-      newDescriptor.meta
-    );
+    newDescriptor.meta = await (typeof newDescriptor.meta === 'function'
+      ? newDescriptor.meta(...args)
+      : newDescriptor.meta);
   } catch (e) {
     delete newDescriptor.meta;
     newDescriptor.payload = new InternalError(e.message);
@@ -96,7 +92,6 @@ export default store => next => async (action) => {
   //   throw new Error('Expected action types to be strings.');
   // }
 
-
   const [requestType, successType, failureType] = types;
   next(await actionWith({ type: requestType }, [action, store.getState()]));
   const callInfoObj = { method };
@@ -109,12 +104,16 @@ export default store => next => async (action) => {
       response.forEach((doc) => {
         data.push({ key: doc.id, value: doc.data() });
       });
-      return next(actionWith({ response, method, args, type: successType, data }));
+      return next(
+        actionWith({ response, method, args, type: successType, data }),
+      );
     })
     .catch(error =>
-      next(actionWith({
-        type: failureType,
-        error: error.message || error || 'Something bad happened',
-      })),
+      next(
+        actionWith({
+          type: failureType,
+          error: error.message || error || 'Something bad happened',
+        }),
+      ),
     );
 };

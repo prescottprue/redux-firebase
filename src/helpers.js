@@ -97,8 +97,7 @@ export const isEmpty = (...args) =>
  * @return {String} - Fixed path
  * @private
  */
-export const fixPath = path =>
-  ((path.substring(0, 1) === '/') ? '' : '/') + path;
+export const fixPath = path => (path.substring(0, 1) === '/' ? '' : '/') + path;
 
 /**
  * @private
@@ -110,7 +109,7 @@ export const fixPath = path =>
 export const buildChildList = (state, list, p) =>
   mapValues(list, (val, key) => {
     let getKey = val;
-     // Handle key: true lists
+    // Handle key: true lists
     if (val === true) {
       getKey = key;
     }
@@ -143,10 +142,11 @@ const populateChild = (state, child, p) => {
       : `${dotRoot}.${childVal}`;
     const populateVal = get(state.data, pathString);
     if (populateVal) {
-      return set({}, p.child, (p.keyProp
-        ? { [p.keyProp]: childVal, ...populateVal }
-        : populateVal
-      ));
+      return set(
+        {},
+        p.child,
+        p.keyProp ? { [p.keyProp]: childVal, ...populateVal } : populateVal,
+      );
     }
     // matching child does not exist
     return child;
@@ -182,9 +182,10 @@ const populateChild = (state, child, p) => {
 export const populate = (state, path, populates, notSetValue) => {
   const splitPath = compact(path.split('/'));
   // append 'data' prefix to path if it is not a top level path
-  const pathArr = topLevelPaths.indexOf(splitPath[0]) === -1
-    ? ['data', ...splitPath]
-    : splitPath;
+  const pathArr =
+    topLevelPaths.indexOf(splitPath[0]) === -1
+      ? ['data', ...splitPath]
+      : splitPath;
   const dotPath = pathArr.join('.');
   // Gather data from top level if path is profile (handles populating profile)
   const data = get(state, dotPath, notSetValue);
@@ -200,16 +201,13 @@ export const populate = (state, path, populates, notSetValue) => {
 
   // check for if data is single object or a list of objects
   const populatesForData = getPopulateObjs(
-    isFunction(populates)
-      ? populates(last(pathArr), data)
-      : populates,
+    isFunction(populates) ? populates(last(pathArr), data) : populates,
   );
   // check each populate child parameter for existence
   const dataHasPopluateChilds = every(populatesForData, p => has(data, p.child));
   if (dataHasPopluateChilds) {
     // Data is a single object, resolve populates directly
-    return reduce(
-      map(populatesForData, (p, obj) => populateChild(state, data, p)),
+    return reduce(map(populatesForData, (p, obj) => populateChild(state, data, p)),
       // combine data from all populates to one object starting with original data
       (obj, v) => defaultsDeep(v, obj),
       // accumulator starts as original data
@@ -229,9 +227,7 @@ export const populate = (state, path, populates, notSetValue) => {
     const key = pathArr[0] === 'ordered' ? child.key : childKey;
     // get populate settings on item level (passes child if populates is a function)
     const populatesForDataItem = getPopulateObjs(
-      isFunction(populates)
-        ? populates(key, child)
-        : populates,
+      isFunction(populates) ? populates(key, child) : populates,
     );
     // combine data from all populates to one object starting with original data
     return reduce(

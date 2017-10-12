@@ -24,31 +24,33 @@ const {
  */
 export const uploadFileWithProgress = (dispatch, firebase, { path, file }) => {
   dispatch({ type: FILE_UPLOAD_START, payload: { path, file } });
-  const uploadEvent = firebase.storage().ref(`${path}/${file.name}`).put(file);
+  const uploadEvent = firebase
+    .storage()
+    .ref(`${path}/${file.name}`)
+    .put(file);
   // TODO: Allow config to control whether progress it set to state or not
-  const unListen = uploadEvent.on(
-    firebase.storage.TaskEvent.STATE_CHANGED,
-    {
-      next: (snapshot) => {
-        dispatch({
-          type: FILE_UPLOAD_PROGRESS,
-          path,
-          payload: {
-            snapshot,
-            percent: Math.floor((snapshot.bytesTransferred / snapshot.totalBytes) * 100),
-          },
-        });
-      },
-      error: (err) => {
-        dispatch({ type: FILE_UPLOAD_ERROR, path, payload: err });
-        unListen();
-      },
-      complete: () => {
-        dispatch({ type: FILE_UPLOAD_COMPLETE, path, payload: file });
-        unListen();
-      },
+  const unListen = uploadEvent.on(firebase.storage.TaskEvent.STATE_CHANGED, {
+    next: (snapshot) => {
+      dispatch({
+        type: FILE_UPLOAD_PROGRESS,
+        path,
+        payload: {
+          snapshot,
+          percent: Math.floor(
+            snapshot.bytesTransferred / snapshot.totalBytes * 100,
+          ),
+        },
+      });
     },
-  );
+    error: (err) => {
+      dispatch({ type: FILE_UPLOAD_ERROR, path, payload: err });
+      unListen();
+    },
+    complete: () => {
+      dispatch({ type: FILE_UPLOAD_COMPLETE, path, payload: file });
+      unListen();
+    },
+  });
   return uploadEvent;
 };
 
@@ -68,7 +70,10 @@ export const uploadFileWithProgress = (dispatch, firebase, { path, file }) => {
 export const uploadFile = (dispatch, firebase, opts) => {
   const { path, file, dbPath } = opts;
   dispatch({ type: FILE_UPLOAD_START, payload: { path, file } });
-  return firebase.storage().ref(`${path}/${opts.name || file.name}`).put(file)
+  return firebase
+    .storage()
+    .ref(`${path}/${opts.name || file.name}`)
+    .put(file)
     .then((res) => {
       dispatch({ type: FILE_UPLOAD_COMPLETE, payload: file });
       if (!dbPath || !firebase.database) {
@@ -82,7 +87,8 @@ export const uploadFile = (dispatch, firebase, opts) => {
         ? fileMetadataFactory(res)
         : { name, fullPath, downloadURL: downloadURLs[0] };
 
-      return firebase.database()
+      return firebase
+        .database()
         .ref(dbPath)
         .push(fileData)
         .then(snapshot => ({ snapshot, key: snapshot.key, File: fileData }));
@@ -106,9 +112,7 @@ export const uploadFile = (dispatch, firebase, opts) => {
  */
 export const uploadFiles = (dispatch, firebase, { path, files, dbPath }) =>
   Promise.all(
-    map(files, file =>
-      uploadFile(dispatch, firebase, { path, file, dbPath }),
-    ),
+    map(files, file => uploadFile(dispatch, firebase, { path, file, dbPath })),
   );
 
 /**
@@ -123,13 +127,6 @@ export const uploadFiles = (dispatch, firebase, { path, files, dbPath }) =>
 export const deleteFile = (dispatch, firebase, { path, dbPath }) =>
   wrapInDispatch(dispatch, {
     method: deleteFileFromFb,
-    args: [
-      firebase,
-      { path, dbPath },
-    ],
-    types: [
-      FILE_DELETE_START,
-      FILE_DELETE_COMPLETE,
-      FILE_DELETE_ERROR,
-    ],
+    args: [firebase, { path, dbPath }],
+    types: [FILE_DELETE_START, FILE_DELETE_COMPLETE, FILE_DELETE_ERROR],
   });
