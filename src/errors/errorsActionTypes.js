@@ -10,7 +10,7 @@ import { actionsPrefix } from '../constants';
  * import { errorsActionTypes } from 'redux-firebase/errors'
  * errorsActionTypes.SET === '@@reduxFirebase/SET' // true
 */
-export const authActionTypes = {
+const authActionTypes = {
   LOGIN_ERROR: `${actionsPrefix}/LOGIN_ERROR`,
   UNAUTHORIZED_ERROR: `${actionsPrefix}/UNAUTHORIZED_ERROR`,
 };

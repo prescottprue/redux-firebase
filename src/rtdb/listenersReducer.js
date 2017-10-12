@@ -1,9 +1,6 @@
 import { omit } from 'lodash';
 import { combineReducers } from '../reducer';
-import {
-  SET_LISTENER,
-  UNSET_LISTENER,
-} from '../constants';
+import { SET_LISTENER, UNSET_LISTENER } from '../constants';
 
 /**
  * Reducer for listeners ids. Changed by `SET_LISTENER` and `UNSET_LISTENER`
@@ -59,9 +56,7 @@ const allListeners = (state = [], { type, payload }) => {
  * @param  {String} action.type - Type of action that was dispatched
  * @return {Object} Profile state after reduction
  */
-export const listenersReducer = combineReducers({
+export default combineReducers({
   byId: listenersById,
   allIds: allListeners,
 });
-
-export default listenersReducer;

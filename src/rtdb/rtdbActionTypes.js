@@ -14,7 +14,7 @@ import { actionsPrefix } from '../constants';
  * import { actionTypes } from 'redux-firebase/actionTypes'
  * actionTypes.SET === '@@reduxFirebase/SET' // true
 */
-export const rtdbActionTypes = {
+const rtdbActionTypes = {
   START: `${actionsPrefix}/START`,
   SET: `${actionsPrefix}/SET`,
   MERGE: `${actionsPrefix}/MERGE`,

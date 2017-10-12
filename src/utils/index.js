@@ -15,7 +15,16 @@ export const createCallable = f => (isFunction(f) ? f : () => f);
  * @return {Array} Path as Array
  * @private
  */
-const pathToArr = path => (path ? path.split(/\//).filter(p => !!p) : []);
+export const pathToArr = path => (path ? path.split(/\//).filter(p => !!p) : []);
+
+
+/**
+ * Trim leading slash from path for use with state
+ * @param  {String} path - Path seperated with slashes
+ * @return {String} Path seperated with slashes
+ * @private
+ */
+export const getSlashStrPath = path => pathToArr(path).join('/');
 
 /**
  * Convert path with slashes to dot seperated path (for use with lodash get/set)
@@ -24,3 +33,5 @@ const pathToArr = path => (path ? path.split(/\//).filter(p => !!p) : []);
  * @private
  */
 export const getDotStrPath = path => pathToArr(path).join('.');
+
+export default { createCallable, pathToArr, getSlashStrPath, getDotStrPath };

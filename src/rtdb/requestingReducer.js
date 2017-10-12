@@ -9,7 +9,7 @@ import { getSlashStrPath } from '../utils';
  * @param  {String} action.path - Path of action that was dispatched
  * @return {Object} Profile state after reduction
  */
-export const requestingReducer = (state = {}, { type, path }) => {
+export default function requestingReducer(state = {}, { type, path }) {
   switch (type) {
     case START:
       return {
@@ -25,6 +25,4 @@ export const requestingReducer = (state = {}, { type, path }) => {
     default:
       return state;
   }
-};
-
-export default requestingReducer;
+}

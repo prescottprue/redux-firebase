@@ -9,7 +9,7 @@ import { LOGIN_ERROR, UNAUTHORIZED_ERROR } from './errorsActionTypes';
  * @param  {String} action.type - Type of action that was dispatched
  * @return {Object} Profile state after reduction
  */
-export const errorsReducer = (state = [], action) => {
+export default function errorsReducer(state = [], action) {
   switch (action.type) {
     case LOGIN_ERROR:
     case UNAUTHORIZED_ERROR:
@@ -19,6 +19,4 @@ export const errorsReducer = (state = [], action) => {
     default:
       return state;
   }
-};
-
-export default errorsReducer;
+}

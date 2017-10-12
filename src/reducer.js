@@ -10,13 +10,15 @@ import {
   UNAUTHORIZED_ERROR,
 } from './actionTypes';
 import {
-  listenersReducer,
-  dataReducer,
-  orderedReducer,
   timestampsReducer,
+  listenersReducer,
   requestedReducer,
   requestingReducer,
 } from './rtdb';
+import {
+  dataReducer,
+  orderedReducer,
+} from './rtdb/rtdbReducers';
 
 /**
  * Combine reducers utility (abreveated version of redux's combineReducer).
