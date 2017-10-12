@@ -1,6 +1,6 @@
-import * as authActions from './auth';
-import * as queryActions from './query';
-import * as storageActions from './storage';
+import { authActions } from './auth';
+import { rtdbActions } from './rtdb';
+import { storageActions } from './storage';
 
-export { authActions, queryActions, storageActions };
-export default { authActions, queryActions, storageActions };
+export { authActions, rtdbActions, storageActions };
+export default { authActions, rtdbActions, storageActions };

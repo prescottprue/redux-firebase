@@ -2,15 +2,27 @@ root: true
 
 parser: babel-eslint
 
-extends: [prettier, airbnb]
-plugins: [babel, prettier]
+extends: airbnb
+plugins: [react, babel, prettier]
 
 env:
   browser: true
   es6: true
   node: true
 
+ecmaFeatures:
+  jsx: true
+  modules: true
+
 rules:
   no-console: 'error'
   no-confusing-arrow: 0
   no-case-declarations: 0
+
+settings:
+  import/resolver:
+    node:
+      moduleDirectory:
+        - node_modules
+        # this sets the path the root since we have a `test` folder that will need to be included going forward.
+        - '/'
