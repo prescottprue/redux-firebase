@@ -1,6 +1,5 @@
 import { isArray, isString, isFunction, forEach } from 'lodash';
-import { actionTypes } from '../constants';
-import { getLoginMethodAndParams } from '../utils/auth';
+import actionTypes from '../actionTypes';
 import { promisesForPopulate } from '../utils/populate';
 
 /**

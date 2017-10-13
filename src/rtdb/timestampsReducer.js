@@ -1,9 +1,5 @@
 import { getSlashStrPath } from '../utils';
-import {
-  START,
-  SET,
-  NO_VALUE,
-} from './rtdbActions';
+import { START, SET, NO_VALUE } from './rtdbActionTypes';
 
 /**
  * Reducer for timestamps state. Changed by `START`, `NO_VALUE`, and `SET` actions.

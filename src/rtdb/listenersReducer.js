@@ -1,6 +1,6 @@
 import { omit } from 'lodash';
 import { combineReducers } from '../reducer';
-import { SET_LISTENER, UNSET_LISTENER } from '../constants';
+import actionTypes from '../actionTypes';
 
 /**
  * Reducer for listeners ids. Changed by `SET_LISTENER` and `UNSET_LISTENER`
@@ -13,7 +13,7 @@ import { SET_LISTENER, UNSET_LISTENER } from '../constants';
  */
 const listenersById = (state = {}, { type, path, payload }) => {
   switch (type) {
-    case SET_LISTENER:
+    case actionTypes.SET_LISTENER:
       return {
         ...state,
         [payload.id]: {
@@ -21,7 +21,7 @@ const listenersById = (state = {}, { type, path, payload }) => {
           path,
         },
       };
-    case UNSET_LISTENER:
+    case actionTypes.UNSET_LISTENER:
       return omit(state, [payload.id]);
     default:
       return state;
@@ -39,9 +39,9 @@ const listenersById = (state = {}, { type, path, payload }) => {
  */
 const allListeners = (state = [], { type, payload }) => {
   switch (type) {
-    case SET_LISTENER:
+    case actionTypes.SET_LISTENER:
       return [...state, payload.id];
-    case UNSET_LISTENER:
+    case actionTypes.UNSET_LISTENER:
       return state.filter(lId => lId !== payload.id);
     default:
       return state;

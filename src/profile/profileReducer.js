@@ -1,4 +1,5 @@
-import { SET_PROFILE, LOGOUT, LOGIN_ERROR } from '../actionTypes';
+import { actionTypes } from '../constants';
+import { LOGOUT, LOGIN_ERROR } from '../actionTypes';
 
 /**
  * Reducer for profile state. Changed by `SET_PROFILE`, `LOGOUT`, and
@@ -8,9 +9,9 @@ import { SET_PROFILE, LOGOUT, LOGIN_ERROR } from '../actionTypes';
  * @param  {String} action.type - Type of action that was dispatched
  * @return {Object} Profile state after reduction
  */
-export const profileReducer = (state = { isLoaded: false, isEmpty: true }, action) => {
+export default function profileReducer(state = { isLoaded: false, isEmpty: true }, action) {
   switch (action.type) {
-    case SET_PROFILE:
+    case actionTypes.SET_PROFILE:
       if (!action.profile) {
         return {
           ...state,
@@ -30,7 +31,4 @@ export const profileReducer = (state = { isLoaded: false, isEmpty: true }, actio
     default:
       return state;
   }
-};
-
-
-export default profileReducer;
+}

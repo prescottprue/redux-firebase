@@ -3,7 +3,7 @@ import { errorsActionTypes } from './errors';
 import { profileActionTypes } from './profile';
 import { rtdbActionTypes } from './rtdb';
 
-export const actionTypes = {
+const actionTypes = {
   ...authActionTypes,
   ...errorsActionTypes,
   ...profileActionTypes,

@@ -1,4 +1,8 @@
-import { START, SET, NO_VALUE } from '../actionTypes';
+import {
+  START,
+  SET,
+  NO_VALUE,
+} from './rtdbActionTypes';
 import { getSlashStrPath } from '../utils';
 
 /**

@@ -35,7 +35,7 @@ export function combineReducers(reducers) {
     Object.keys(reducers).reduce((nextState, key) => {
       nextState[key] = reducers[key](state[key], action); // eslint-disable-line no-param-reassign
       return nextState;
-    }, {});
+    }, state);
 }
 
 /**

@@ -1,12 +1,7 @@
 import { pick, get } from 'lodash';
 import { setWith, assign } from 'lodash/fp';
-import {
-  SET,
-  MERGE,
-  LOGOUT,
-  NO_VALUE,
-} from '../actionTypes';
 import { getDotStrPath } from '../utils';
+import { SET, MERGE, LOGOUT, NO_VALUE } from './rtdbActionTypes';
 
 /**
  * Creates reducer for data state. Used to create data and ordered reducers.
