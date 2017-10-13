@@ -21,7 +21,7 @@ export const getWatchPath = (event, path) => {
   if (!event || event === '' || !path) {
     throw new Error('Event and path are required');
   }
-  return `${event}:${((path.substring(0, 1) === '/') ? '' : '/')}${path}`;
+  return `${event}:${path.substring(0, 1) === '/' ? '' : '/'}${path}`;
 };
 
 /**
@@ -37,16 +37,20 @@ export const getQueryIdFromPath = (path, event = undefined) => {
 
   const isQuery = pathSplitted.length > 1;
   const queryParams = isQuery ? pathSplitted[1].split('&') : [];
-  const queryId = isQuery ? queryParams.map((param) => {
-    const splittedParam = param.split('=');
-    // Handle query id in path
-    if (splittedParam[0] === 'queryId') {
-      return splittedParam[1];
-    }
-  }).filter(q => q) : undefined;
+  const queryId = isQuery
+    ? queryParams
+        .map((param) => {
+          const splittedParam = param.split('=');
+          // Handle query id in path
+          if (splittedParam[0] === 'queryId') {
+            return splittedParam[1];
+          }
+        })
+        .filter(q => q)
+    : undefined;
   return queryId && queryId.length > 0
-      ? (event ? `${event}:/${queryId}` : queryId[0])
-      : (isQuery ? origPath : undefined);
+    ? event ? `${event}:/${queryId}` : queryId[0]
+    : isQuery ? origPath : undefined;
 };
 
 /**
@@ -58,8 +62,15 @@ export const getQueryIdFromPath = (path, event = undefined) => {
  * @param {String} queryId - Id of query
  * @return {Integer} watcherCount - count
  */
-export const setWatcher = (firebase, dispatch, event, path, queryId = undefined) => {
-  const id = queryId || getQueryIdFromPath(path, event) || getWatchPath(event, path);
+export const setWatcher = (
+  firebase,
+  dispatch,
+  event,
+  path,
+  queryId = undefined,
+) => {
+  const id =
+    queryId || getQueryIdFromPath(path, event) || getWatchPath(event, path);
 
   if (firebase._.watchers[id]) {
     firebase._.watchers[id]++;
@@ -82,7 +93,8 @@ export const setWatcher = (firebase, dispatch, event, path, queryId = undefined)
  * @return {Number} watcherCount
  */
 export const getWatcherCount = (firebase, event, path, queryId = undefined) => {
-  const id = queryId || getQueryIdFromPath(path, event) || getWatchPath(event, path);
+  const id =
+    queryId || getQueryIdFromPath(path, event) || getWatchPath(event, path);
   return firebase._.watchers[id];
 };
 
@@ -95,14 +107,25 @@ export const getWatcherCount = (firebase, event, path, queryId = undefined) => {
  * @param {String} path - Path to watch with watcher
  * @param {String} queryId - Id of query
  */
-export const unsetWatcher = (firebase, dispatch, event, path, queryId = undefined) => {
-  const id = queryId || getQueryIdFromPath(path, event) || getWatchPath(event, path);
+export const unsetWatcher = (
+  firebase,
+  dispatch,
+  event,
+  path,
+  queryId = undefined,
+) => {
+  const id =
+    queryId || getQueryIdFromPath(path, event) || getWatchPath(event, path);
   path = path.split('#')[0];
   const { watchers } = firebase._;
   if (watchers[id] <= 1) {
     delete watchers[id];
     if (event !== 'first_child' && event !== 'once') {
-      firebase.database().ref().child(path).off(event);
+      firebase
+        .database()
+        .ref()
+        .child(path)
+        .off(event);
       // TODO: Remove config.distpatchOnUnsetListener
     }
   } else if (watchers[id]) {
@@ -152,27 +175,34 @@ export const applyParamsToQuery = (queryParams, query) => {
           doNotParse = true;
           break;
         case 'equalTo':
-          let equalToParam = !doNotParse ? tryParseToNumber(param[1]) : param[1];
+          let equalToParam = !doNotParse
+            ? tryParseToNumber(param[1])
+            : param[1];
           equalToParam = equalToParam === 'null' ? null : equalToParam;
           equalToParam = equalToParam === 'false' ? false : equalToParam;
           equalToParam = equalToParam === 'true' ? true : equalToParam;
-          query = param.length === 3
-            ? query.equalTo(equalToParam, param[2])
-            : query.equalTo(equalToParam);
+          query =
+            param.length === 3
+              ? query.equalTo(equalToParam, param[2])
+              : query.equalTo(equalToParam);
           break;
         case 'startAt':
-          let startAtParam = !doNotParse ? tryParseToNumber(param[1]) : param[1];
+          let startAtParam = !doNotParse
+            ? tryParseToNumber(param[1])
+            : param[1];
           startAtParam = startAtParam === 'null' ? null : startAtParam;
-          query = param.length === 3
-            ? query.startAt(startAtParam, param[2])
-            : query.startAt(startAtParam);
+          query =
+            param.length === 3
+              ? query.startAt(startAtParam, param[2])
+              : query.startAt(startAtParam);
           break;
         case 'endAt':
           let endAtParam = !doNotParse ? tryParseToNumber(param[1]) : param[1];
           endAtParam = endAtParam === 'null' ? null : endAtParam;
-          query = param.length === 3
-            ? query.endAt(endAtParam, param[2])
-            : query.endAt(endAtParam);
+          query =
+            param.length === 3
+              ? query.endAt(endAtParam, param[2])
+              : query.endAt(endAtParam);
           break;
       }
     });

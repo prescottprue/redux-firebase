@@ -1,9 +1,4 @@
-import {
-  isArray,
-  isString,
-  isFunction,
-  forEach,
-} from 'lodash';
+import { isArray, isString, isFunction, forEach } from 'lodash';
 import { actionTypes } from '../constants';
 import { getLoginMethodAndParams } from '../utils/auth';
 import { promisesForPopulate } from '../utils/populate';
@@ -29,7 +24,8 @@ export const unWatchUserProfile = (firebase) => {
   const authUid = firebase._.authUid;
   const userProfile = firebase._.config.userProfile;
   if (firebase._.profileWatch) {
-    firebase.database()
+    firebase
+      .database()
       .ref()
       .child(`${userProfile}/${authUid}`)
       .off('value', firebase._.profileWatch);
@@ -48,7 +44,8 @@ export const watchUserProfile = (dispatch, firebase) => {
   unWatchUserProfile(firebase);
 
   if (userProfile && firebase.database) {
-    firebase._.profileWatch = firebase.database() // eslint-disable-line no-param-reassign
+    firebase._.profileWatch = firebase // eslint-disable-line no-param-reassign
+      .database()
       .ref()
       .child(`${userProfile}/${authUid}`)
       .on('value', (snap) => {
@@ -58,32 +55,40 @@ export const watchUserProfile = (dispatch, firebase) => {
         } = firebase._.config;
         if (
           !profileParamsToPopulate ||
-          (!isArray(profileParamsToPopulate) && !isString(profileParamsToPopulate))
+          (!isArray(profileParamsToPopulate) &&
+            !isString(profileParamsToPopulate))
         ) {
           dispatch({ type: actionTypes.SET_PROFILE, profile: snap.val() });
         } else {
           // TODO: Share population logic with query action
           // Convert each populate string in array into an array of once query promises
-          promisesForPopulate(firebase, snap.key, snap.val(), profileParamsToPopulate)
-            .then((data) => {
-              // Fire actions for placement of data gathered in populate into redux
-              forEach(data, (result, path) => {
-                dispatch({
-                  type: actionTypes.SET,
-                  path,
-                  data: result,
-                  timestamp: Date.now(),
-                  requesting: false,
-                  requested: true,
-                });
+          promisesForPopulate(
+            firebase,
+            snap.key,
+            snap.val(),
+            profileParamsToPopulate,
+          ).then((data) => {
+            // Fire actions for placement of data gathered in populate into redux
+            forEach(data, (result, path) => {
+              dispatch({
+                type: actionTypes.SET,
+                path,
+                data: result,
+                timestamp: Date.now(),
+                requesting: false,
+                requested: true,
               });
-              dispatch({ type: actionTypes.SET_PROFILE, profile: snap.val() });
-              // Dispatch action with profile combined with populated parameters
-              // Auto Populate profile
-              if (autoPopulateProfile) {
-                console.warn('Auto populate is no longer supported. We are working on backwards compatibility for v2.0.0'); // eslint-disable-line no-console
-              }
             });
+            dispatch({ type: actionTypes.SET_PROFILE, profile: snap.val() });
+            // Dispatch action with profile combined with populated parameters
+            // Auto Populate profile
+            if (autoPopulateProfile) {
+              console.warn(
+                // eslint-disable-line no-console
+                'Auto populate is no longer supported. We are working on backwards compatibility for v2.0.0',
+              );
+            }
+          });
         }
       });
   }
@@ -91,8 +96,7 @@ export const watchUserProfile = (dispatch, firebase) => {
 
 /**
  * @description Create user profile if it does not already exist. `updateProfileOnLogin: false`
- * can be passed to config to disable updating. Profile factory is applied if
- * it exists and is a function.
+ * can be passed to config to disable updating. Profile factory is applied if it exists and is a function.
  * @param {Function} dispatch - Action dispatch function
  * @param {Object} firebase - Internal firebase object
  * @param {Object} userData - User data object (response from authenticating)
@@ -112,21 +116,27 @@ export const createUserProfile = (dispatch, firebase, userData, profile) => {
     try {
       profile = config.profileFactory(userData, profile); // eslint-disable-line no-param-reassign
     } catch (err) {
-      console.error('Error occured within profileFactory function:', err.message || err); // eslint-disable-line no-console
+      console.error(
+        // eslint-disable-line no-console
+        'Error occured within profileFactory function:',
+        err.message || err,
+      );
       return Promise.reject(err);
     }
   }
 
   // Check for user's profile at userProfile path if provided
-  return firebase.database()
+  return firebase
+    .database()
     .ref()
     .child(`${config.userProfile}/${userData.uid}`)
     .once('value')
-    .then(profileSnap =>
-      // update profile only if doesn't exist or if set by config
-      !config.updateProfileOnLogin && profileSnap.val() !== null
-        ? profileSnap.val()
-        : profileSnap.ref.update(profile).then(() => profile), // Update the profile
+    .then(
+      profileSnap =>
+        // update profile only if doesn't exist or if set by config
+        !config.updateProfileOnLogin && profileSnap.val() !== null
+          ? profileSnap.val()
+          : profileSnap.ref.update(profile).then(() => profile), // Update the profile
     )
     .catch((err) => {
       // Error reading user profile
@@ -153,12 +163,16 @@ const setupPresence = (dispatch, firebase) => {
   const ref = firebase.database().ref();
   const { config: { presence, sessions }, authUid } = firebase._;
   const amOnline = ref.child('.info/connected');
-  const onlineRef = ref.child(isFunction(presence)
-    ? presence(firebase.auth().currentUser, firebase)
-    : presence).child(authUid);
+  const onlineRef = ref
+    .child(
+      isFunction(presence)
+        ? presence(firebase.auth().currentUser, firebase)
+        : presence,
+    )
+    .child(authUid);
   let sessionsRef = isFunction(sessions)
-  ? sessions(firebase.auth().currentUser, firebase)
-  : sessions;
+    ? sessions(firebase.auth().currentUser, firebase)
+    : sessions;
   if (sessionsRef) {
     sessionsRef = ref.child(sessions);
   }
@@ -176,9 +190,11 @@ const setupPresence = (dispatch, firebase) => {
       // set authUid as priority for easy sorting
       session.setPriority(authUid);
       const endedRef = session.child('endedAt');
-      endedRef.onDisconnect().set(firebase.database.ServerValue.TIMESTAMP, () => {
-        dispatch({ type: actionTypes.SESSION_END });
-      });
+      endedRef
+        .onDisconnect()
+        .set(firebase.database.ServerValue.TIMESTAMP, () => {
+          dispatch({ type: actionTypes.SESSION_END });
+        });
     }
     // add correct session id to user
     // remove from presence list
@@ -204,7 +220,10 @@ export const init = (dispatch, firebase) => {
     const { config } = firebase._;
     if (!authData) {
       // Run onAuthStateChanged if it exists in config and enableEmptyAuthChanges is set to true
-      if (isFunction(config.onAuthStateChanged) && config.enableEmptyAuthChanges) {
+      if (
+        isFunction(config.onAuthStateChanged) &&
+        config.enableEmptyAuthChanges
+      ) {
         firebase._.config.onAuthStateChanged(authData, firebase, dispatch);
       }
 
@@ -213,7 +232,11 @@ export const init = (dispatch, firebase) => {
       firebase._.authUid = authData.uid; // eslint-disable-line no-param-reassign
 
       // setup presence if settings and database exist
-      if (config.presence && firebase.database && firebase.database.ServerValue) {
+      if (
+        config.presence &&
+        firebase.database &&
+        firebase.database.ServerValue
+      ) {
         setupPresence(dispatch, firebase);
       }
 
@@ -229,13 +252,16 @@ export const init = (dispatch, firebase) => {
   });
 
   // set redirect result callback if enableRedirectHandling set to true
-  if (firebase._.config.enableRedirectHandling && (
-    typeof window !== 'undefined' &&
-    window.location &&
-    window.location.protocol &&
-    window.location.protocol.indexOf('http') !== -1
-  )) {
-    firebase.auth().getRedirectResult()
+  if (
+    firebase._.config.enableRedirectHandling &&
+    (typeof window !== 'undefined' &&
+      window.location &&
+      window.location.protocol &&
+      window.location.protocol.indexOf('http') !== -1)
+  ) {
+    firebase
+      .auth()
+      .getRedirectResult()
       .then((authData) => {
         // Run onRedirectResult if it exists in config
         if (typeof firebase._.config.onRedirectResult === 'function') {
@@ -249,17 +275,12 @@ export const init = (dispatch, firebase) => {
 
           dispatch({ type: actionTypes.LOGIN, auth: user });
 
-          createUserProfile(
-            dispatch,
-            firebase,
-            user,
-            {
-              email: user.email,
-              displayName: user.providerData[0].displayName || user.email,
-              avatarUrl: user.providerData[0].photoURL,
-              providerData: user.providerData,
-            },
-          );
+          createUserProfile(dispatch, firebase, user, {
+            email: user.email,
+            displayName: user.providerData[0].displayName || user.email,
+            avatarUrl: user.providerData[0].photoURL,
+            providerData: user.providerData,
+          });
         }
       })
       .catch((error) => {
@@ -296,7 +317,9 @@ export const login = (dispatch, firebase, credentials) => {
 
   const { method, params } = getLoginMethodAndParams(firebase, credentials);
 
-  return firebase.auth()[method](...params)
+  return firebase
+    .auth()
+    [method](...params)
     .then((userData) => {
       // Handle null response from getRedirectResult before redirect has happened
       if (!userData) return Promise.resolve(null);
@@ -311,28 +334,18 @@ export const login = (dispatch, firebase, credentials) => {
         if (!firebase._.config.updateProfileOnLogin) {
           return { user: userData };
         }
-        return createUserProfile(
-          dispatch,
-          firebase,
-          userData,
-        );
+        return createUserProfile(dispatch, firebase, userData);
       }
 
       // Create profile when logging in with external provider
       const user = userData.user || userData;
 
-      return createUserProfile(
-        dispatch,
-        firebase,
-        user,
-        {
-          email: user.email,
-          displayName: user.providerData[0].displayName || user.email,
-          avatarUrl: user.providerData[0].photoURL,
-          providerData: user.providerData,
-        },
-      )
-      .then(profile => ({ profile, ...userData }));
+      return createUserProfile(dispatch, firebase, user, {
+        email: user.email,
+        displayName: user.providerData[0].displayName || user.email,
+        avatarUrl: user.providerData[0].photoURL,
+        providerData: user.providerData,
+      }).then(profile => ({ profile, ...userData }));
     })
     .catch((err) => {
       dispatchLoginError(dispatch, err);
@@ -347,7 +360,8 @@ export const login = (dispatch, firebase, credentials) => {
  * @private
  */
 export const logout = (dispatch, firebase) =>
-  firebase.auth()
+  firebase
+    .auth()
     .signOut()
     .then(() => {
       dispatch({
@@ -367,36 +381,59 @@ export const logout = (dispatch, firebase) =>
  * @return {Promise}
  * @private
  */
-export const createUser = (dispatch, firebase, { email, password, signIn }, profile) => {
+export const createUser = (
+  dispatch,
+  firebase,
+  { email, password, signIn },
+  profile,
+) => {
   dispatchLoginError(dispatch, null);
 
   if (!email || !password) {
-    dispatchLoginError(dispatch, new Error('Email and Password are required to create user'));
+    dispatchLoginError(
+      dispatch,
+      new Error('Email and Password are required to create user'),
+    );
     return Promise.reject(new Error('Email and Password are Required'));
   }
 
-  return firebase.auth()
+  return firebase
+    .auth()
     .createUserWithEmailAndPassword(email, password)
-    .then(userData =>
-      // Login to newly created account if signIn flag is not set to false
-      firebase.auth().currentUser || (!!signIn && signIn === false)
-        ? createUserProfile(dispatch, firebase, userData, profile || { email })
-        : login(dispatch, firebase, { email, password })
-            .then(() =>
-              createUserProfile(dispatch, firebase, userData, profile || { email }),
+    .then(
+      userData =>
+        // Login to newly created account if signIn flag is not set to false
+        firebase.auth().currentUser || (!!signIn && signIn === false)
+          ? createUserProfile(
+              dispatch,
+              firebase,
+              userData,
+              profile || { email },
             )
-            .catch((err) => {
-              if (err) {
-                switch (err.code) {
-                  case 'auth/user-not-found':
-                    dispatchLoginError(dispatch, new Error('The specified user account does not exist.'));
-                    break;
-                  default:
-                    dispatchLoginError(dispatch, err);
+          : login(dispatch, firebase, { email, password })
+              .then(() =>
+                createUserProfile(
+                  dispatch,
+                  firebase,
+                  userData,
+                  profile || { email },
+                ),
+              )
+              .catch((err) => {
+                if (err) {
+                  switch (err.code) {
+                    case 'auth/user-not-found':
+                      dispatchLoginError(
+                        dispatch,
+                        new Error('The specified user account does not exist.'),
+                      );
+                      break;
+                    default:
+                      dispatchLoginError(dispatch, err);
+                  }
                 }
-              }
-              return Promise.reject(err);
-            }),
+                return Promise.reject(err);
+              }),
     )
     .catch((err) => {
       dispatchLoginError(dispatch, err);
@@ -414,12 +451,16 @@ export const createUser = (dispatch, firebase, { email, password, signIn }, prof
  */
 export const resetPassword = (dispatch, firebase, email) => {
   dispatchLoginError(dispatch, null);
-  return firebase.auth()
+  return firebase
+    .auth()
     .sendPasswordResetEmail(email)
     .catch((err) => {
       switch (err.code) {
         case 'auth/user-not-found':
-          dispatchLoginError(dispatch, new Error('The specified user account does not exist.'));
+          dispatchLoginError(
+            dispatch,
+            new Error('The specified user account does not exist.'),
+          );
           break;
         default:
           dispatchLoginError(dispatch, err);
@@ -439,15 +480,22 @@ export const resetPassword = (dispatch, firebase, email) => {
  */
 export const confirmPasswordReset = (dispatch, firebase, code, password) => {
   dispatchLoginError(dispatch, null);
-  return firebase.auth()
+  return firebase
+    .auth()
     .confirmPasswordReset(code, password)
     .catch((err) => {
       switch (err.code) {
         case 'auth/expired-action-code':
-          dispatchLoginError(dispatch, new Error('The action code has expired.'));
+          dispatchLoginError(
+            dispatch,
+            new Error('The action code has expired.'),
+          );
           break;
         case 'auth/invalid-action-code':
-          dispatchLoginError(dispatch, new Error('The action code is invalid.'));
+          dispatchLoginError(
+            dispatch,
+            new Error('The action code is invalid.'),
+          );
           break;
         case 'auth/user-disabled':
           dispatchLoginError(dispatch, new Error('The user is disabled.'));
@@ -456,7 +504,10 @@ export const confirmPasswordReset = (dispatch, firebase, code, password) => {
           dispatchLoginError(dispatch, new Error('The user is not found.'));
           break;
         case 'auth/weak-password':
-          dispatchLoginError(dispatch, new Error('The password is not strong enough.'));
+          dispatchLoginError(
+            dispatch,
+            new Error('The password is not strong enough.'),
+          );
           break;
         default:
           dispatchLoginError(dispatch, err);
@@ -475,7 +526,8 @@ export const confirmPasswordReset = (dispatch, firebase, code, password) => {
  */
 export const verifyPasswordResetCode = (dispatch, firebase, code) => {
   dispatchLoginError(dispatch, null);
-  return firebase.auth()
+  return firebase
+    .auth()
     .verifyPasswordResetCode(code)
     .catch((err) => {
       if (err) {
@@ -504,15 +556,13 @@ export const updateProfile = (dispatch, firebase, profileUpdate) => {
   return profileRef
     .update(profileUpdate)
     .then(() =>
-      profileRef
-        .once('value')
-        .then((snap) => {
-          dispatch({
-            type: actionTypes.PROFILE_UPDATE_SUCCESS,
-            payload: snap.val(),
-          });
-          return snap;
-        }),
+      profileRef.once('value').then((snap) => {
+        dispatch({
+          type: actionTypes.PROFILE_UPDATE_SUCCESS,
+          payload: snap.val(),
+        });
+        return snap;
+      }),
     )
     .catch((payload) => {
       dispatch({ type: actionTypes.PROFILE_UPDATE_ERROR, payload });
@@ -520,7 +570,7 @@ export const updateProfile = (dispatch, firebase, profileUpdate) => {
     });
 };
 
- /**
+/**
   * @description Update Auth Object. Internally calls
   * `firebase.auth().currentUser.updateProfile` as seen [in the firebase docs](https://firebase.google.com/docs/auth/web/manage-users#update_a_users_profile).
   * @param {Function} dispatch - Action dispatch function
@@ -538,8 +588,9 @@ export const updateAuth = (dispatch, firebase, authUpdate, updateInProfile) => {
     return Promise.reject(msg);
   }
 
-  return firebase.auth().currentUser
-    .updateProfile(authUpdate)
+  return firebase
+    .auth()
+    .currentUser.updateProfile(authUpdate)
     .then((payload) => {
       dispatch({
         type: actionTypes.AUTH_UPDATE_SUCCESS,
@@ -574,8 +625,9 @@ export const updateEmail = (dispatch, firebase, newEmail, updateInProfile) => {
     return Promise.reject(msg);
   }
 
-  return firebase.auth().currentUser
-    .updateEmail(newEmail)
+  return firebase
+    .auth()
+    .currentUser.updateEmail(newEmail)
     .then((payload) => {
       dispatch({ type: actionTypes.EMAIL_UPDATE_SUCCESS, payload: newEmail });
       if (updateInProfile) {
@@ -605,7 +657,9 @@ export const reloadAuth = (dispatch, firebase) => {
     return Promise.reject(err);
   }
 
-  return firebase.auth().currentUser.reload()
+  return firebase
+    .auth()
+    .currentUser.reload()
     .then(() => {
       const auth = firebase.auth().currentUser;
       dispatch({ type: actionTypes.AUTH_RELOAD_SUCCESS, payload: auth });
@@ -633,7 +687,9 @@ export const linkWithCredential = (dispatch, firebase, credential) => {
     return Promise.reject(err);
   }
 
-  return firebase.auth().currentUser.linkWithCredential(credential)
+  return firebase
+    .auth()
+    .currentUser.linkWithCredential(credential)
     .then((auth) => {
       dispatch({ type: actionTypes.AUTH_LINK_SUCCESS, payload: auth });
       return auth;

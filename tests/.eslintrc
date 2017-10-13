@@ -12,8 +12,6 @@ globals:
   Firebase: true
   firebase: true
   fbConfig: true
-  uid: true
 
 rules:
   no-unused-expressions: [0]
-  import/no-extraneous-dependencies: 0

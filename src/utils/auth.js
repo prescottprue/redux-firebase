@@ -12,7 +12,9 @@ import { supportedAuthProviders } from '../constants';
 const createAuthProvider = (firebase, providerName, scopes) => {
   // TODO: Verify scopes are valid before adding
   // TODO: Validate parameter inputs
-  const provider = new firebase.auth[`${capitalize(providerName)}AuthProvider`]();
+  const provider = new firebase.auth[
+    `${capitalize(providerName)}AuthProvider`
+  ]();
 
   // Custom Auth Parameters
   const { customAuthParameters } = firebase._.config;
@@ -21,7 +23,10 @@ const createAuthProvider = (firebase, providerName, scopes) => {
   }
 
   // Handle providers without scopes
-  if (providerName.toLowerCase() === 'twitter' || !isFunction(provider.addScope)) {
+  if (
+    providerName.toLowerCase() === 'twitter' ||
+    !isFunction(provider.addScope)
+  ) {
     return provider;
   }
 
@@ -75,7 +80,9 @@ export const getLoginMethodAndParams = (firebase, credentials) => {
       throw new Error(`${provider} is not a valid Auth Provider`);
     }
     if (token) {
-      throw new Error('provider with token no longer supported, use credential parameter instead');
+      throw new Error(
+        'provider with token no longer supported, use credential parameter instead',
+      );
     }
     const authProvider = createAuthProvider(firebase, provider, scopes);
     if (type === 'popup') {
@@ -94,7 +101,11 @@ const isAuthReady = (store, stateName) => {
   const firebaseState = stateName ? state[stateName] : state;
   const firebaseAuthState = firebaseState && firebaseState.auth;
   if (!firebaseAuthState) {
-    throw new Error(`The Firebase auth state could not be found in the store under the attribute '${stateName ? `${stateName}.` : ''}auth'. Make sure your react-redux-firebase reducer is correctly set in the store`);
+    throw new Error(
+      `The Firebase auth state could not be found in the store under the attribute '${stateName
+        ? `${stateName}.`
+        : ''}auth'. Make sure your react-redux-firebase reducer is correctly set in the store`,
+    );
   }
   return firebaseState.auth.isLoaded;
 };
@@ -135,6 +146,7 @@ export const authIsReady = (store, stateName = 'firebase') =>
  * @return {Promise} - A promise that completes when Firebase auth is ready
  * in the store.
  */
-export const createAuthIsReady = (store, config) => isFunction(config.authIsReady)
+export const createAuthIsReady = (store, config) =>
+  isFunction(config.authIsReady)
     ? config.authIsReady(store, config)
     : authIsReady(store, config.firebaseStateName);

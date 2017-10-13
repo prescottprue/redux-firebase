@@ -5,22 +5,18 @@ const chai = require('chai');
 const sinon = require('sinon');
 const chaiAsPromised = require('chai-as-promised');
 const sinonChai = require('sinon-chai');
-const jsdom = require('jsdom').jsdom;
+const JSDOM = require('jsdom').JSDOM;
 const FirebaseServer = require('firebase-server');
 const Firebase = require('firebase');
+const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 const WebSocket = require('ws');
 
-const fbConfig = {
-  apiKey: 'asdf', // placeholder
-  authDomain: 'asdf', // placeholder
-  databaseURL: 'ws://127.0.1:5000',
-  storageBucket: 'asdf', // placeholder
-  messagingSenderId: 'asdf', // placeholder
-};
+const uid = 'Iq5b0qK2NtgggT6U3bU6iZRGyma2';
+const dom = new JSDOM('<!doctype html><html><body></body></html>');
 
 new FirebaseServer(5000, 'localhost.firebaseio.test', { // eslint-disable-line no-new
   users: {
-    Iq5b0qK2NtgggT6U3bU6iZRGyma2: {
+    [uid]: {
       displayName: 'Tester',
     },
   },
@@ -30,20 +26,30 @@ new FirebaseServer(5000, 'localhost.firebaseio.test', { // eslint-disable-line n
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
+// Firebase Instance Setup (fake instance connected to firebase-server)
+const fbConfig = {
+  apiKey: 'AIzaSyCTUERDM-Pchn_UDTsfhVPiwM4TtNIxots', // placeholder
+  authDomain: 'asdf', // placeholder
+  databaseURL: 'ws://127.0.1:5000',
+  storageBucket: 'asdf', // placeholder
+  messagingSenderId: 'asdf', // placeholder
+};
+
 // globals
+global.uid = uid;
+global.fbConfig = fbConfig;
+global.Firebase = Firebase;
 global.expect = chai.expect;
 global.sinon = sinon;
 global.chai = chai;
-global.document = jsdom('<!doctype html><html><body></body></html>');
-global.window = document.defaultView;
+global.window = dom.window;
+global.document = global.window.document;
 global.navigator = global.window.navigator;
-
 // needed to fix "Error: The XMLHttpRequest compatibility library was not found." from Firebase auth
-global.XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+global.XMLHttpRequest = XMLHttpRequest;
 // needed to fix: "FIREBASE WARNING: wss:// URL used, but browser isn't known to support websockets.  Trying anyway."
 global.WebSocket = WebSocket;
-global.Firebase = Firebase;
-global.fbConfig = fbConfig;
+
 
 // Swallow firebase reinitialize error (useful when using watch)
 try {
