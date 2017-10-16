@@ -2,84 +2,145 @@ import {
   watchEvent,
   unWatchEvent,
   watchEvents,
-  unWatchEvents
-} from '../../../src/rtdb/rtdbActions'
+  unWatchEvents,
+  remove,
+} from '../../../src/rtdb/rtdbActions';
 
-let spy
-const dispatch = () => {}
+let spy;
+const dispatch = () => {};
 
 describe('Actions: Query', () => {
   beforeEach(() => {
-    spy = sinon.spy(dispatch)
-  })
+    spy = sinon.spy(dispatch);
+  });
 
   describe('watchEvent', () => {
     it('is exported', () => {
-      expect(watchEvent).to.be.a.function
-    })
+      expect(watchEvent).to.be.a.function;
+    });
 
     it('runs given basic params', () => {
       expect(watchEvent(firebase, dispatch, { type: 'once', path: 'projects' }, 'projects'))
-        .to.eventually.be.an.object
-    })
+        .to.eventually.be.an.object;
+    });
 
     it('runs given first_child', () => {
       expect(watchEvent(firebase, dispatch, { type: 'first_child', path: 'projects' }, 'projects'))
-        .to.eventually.be.an.object
-    })
+        .to.eventually.be.an.object;
+    });
 
     it('runs value query', () => {
-      expect(watchEvent(firebase, dispatch, { type: 'value', path: 'projects' }, 'projects'))
-    })
+      expect(watchEvent(firebase, dispatch, { type: 'value', path: 'projects' }, 'projects'));
+    });
 
     it('handles populates', () => {
-      expect(watchEvent(firebase, dispatch, { type: 'value', path: 'projects', populates: [{ child: 'uid', root: 'users' }] }, 'projects'))
-    })
+      expect(watchEvent(firebase, dispatch, { type: 'value', path: 'projects', populates: [{ child: 'uid', root: 'users' }] }, 'projects'));
+    });
 
     it('throws for null type', () => {
-      expect(() => watchEvent(firebase, dispatch, { path: 'projects' }, 'projects')).to.Throw
-    })
-  })
+      expect(() => watchEvent(firebase, dispatch, { path: 'projects' }, 'projects')).to.Throw;
+    });
+  });
 
   describe('unWatchEvent', () => {
     it('is exported', () => {
-      expect(unWatchEvent).to.be.a.function
-    })
+      expect(unWatchEvent).to.be.a.function;
+    });
 
     it('runs given basic params', () => {
-      expect(unWatchEvent(firebase, dispatch, { type: 'once', path: 'projects' })).to.be.a.function
-    })
-  })
+      expect(unWatchEvent(firebase, dispatch, { type: 'once', path: 'projects' })).to.be.a.function;
+    });
+  });
 
   describe('watchEvents', () => {
     it('is exported', () => {
-      expect(watchEvents).to.be.a.function
-    })
+      expect(watchEvents).to.be.a.function;
+    });
 
     it('runs given basic params', () => {
-      const events = [{type: 'once', path: 'test'}]
-      spy = sinon.spy(events, 'forEach')
-      watchEvents(firebase, dispatch, events)
-      expect(spy).to.be.calledOnce
-    })
-  })
+      const events = [{ type: 'once', path: 'test' }];
+      spy = sinon.spy(events, 'forEach');
+      watchEvents(firebase, dispatch, events);
+      expect(spy).to.be.calledOnce;
+    });
+  });
 
   describe('unWatchEvents', () => {
     it('is exported', () => {
-      expect(unWatchEvents).to.be.a.function
-    })
+      expect(unWatchEvents).to.be.a.function;
+    });
 
     it('runs given basic params', () => {
-      const events = [{type: 'value', path: 'test'}]
-      spy = sinon.spy(events, 'forEach')
-      unWatchEvents(firebase, dispatch, events)
-      expect(spy).to.be.calledOnce
-    })
+      const events = [{ type: 'value', path: 'test' }];
+      spy = sinon.spy(events, 'forEach');
+      unWatchEvents(firebase, dispatch, events);
+      expect(spy).to.be.calledOnce;
+    });
 
     it('throws for bad type', () => {
-      const events = [{path: 'test'}]
-      spy = sinon.spy(events, 'forEach')
-      expect(() => unWatchEvents(firebase, dispatch, events)).to.Throw
+      const events = [{ path: 'test' }];
+      spy = sinon.spy(events, 'forEach');
+      expect(() => unWatchEvents(firebase, dispatch, events)).to.Throw;
+    });
+  });
+
+
+  describe('remove', () => {
+    it('calls firebase.remove', async () => {
+      const path = 'test'
+      const removeSpy = sinon.spy(() => Promise.resolve({}))
+      const fake = {
+        database: () => ({ ref: () => ({ remove: removeSpy }) }),
+        _: firebase._
+      }
+      await remove(fake, dispatch, path)
+      expect(removeSpy).to.have.been.calledOnce
+    })
+    it('dispatches REMOVE action by default', async () => {
+      const path = 'test'
+      const dispatchSpy = sinon.spy()
+      await remove(firebase, dispatchSpy, path)
+      expect(dispatchSpy).to.have.been.calledOnce
+      expect(dispatchSpy).to.have.been.calledWith({
+        type: actionTypes.REMOVE,
+        path
+      })
+    })
+    it('calls onComplete if provided', async () => {
+      const path = 'test'
+      const onCompleteSpy = sinon.spy()
+      await remove(firebase, dispatch, path, onCompleteSpy)
+      expect(onCompleteSpy).to.have.been.calledOnce
+    })
+    it('dispatches ERROR if remove call has an error', async () => {
+      const path = 'test'
+      const dispatchSpy = sinon.spy()
+      const removeSpy = sinon.spy(() => Promise.reject(path)) // eslint-disable-line prefer-promise-reject-errors
+      const fake = {
+        database: () => ({ ref: () => ({ remove: removeSpy }) }),
+        _: firebase._
+      }
+      // Wrap in try/catch to catch thrown error
+      try {
+        await remove(fake, dispatchSpy, path)
+        expect(dispatchSpy).to.have.been.calledOnce
+        expect(dispatchSpy).to.have.been.calledWith({
+          type: actionTypes.REMOVE,
+          path
+        })
+      } catch (err) {
+        // confirm the thrown error is the one from the test
+        expect(err).to.equal(path)
+      }
+    })
+
+    describe('options', () => {
+      it('dispatchAction: false prevents dispatch of REMOVE action', async () => {
+        const dispatchSpy = sinon.spy()
+        const options = { dispatchAction: false }
+        await remove(firebase, dispatchSpy, 'test', null, options)
+        expect(dispatchSpy).to.have.callCount(0)
+      })
     })
   })
-})
+});

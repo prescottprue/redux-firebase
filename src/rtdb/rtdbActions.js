@@ -1,3 +1,4 @@
+import { isFunction } from 'lodash';
 import { actionTypes } from '../constants';
 import {
   orderedFromSnapshot,
@@ -49,8 +50,8 @@ export const watchEvent = (firebase, dispatch, options) => {
   setWatcher(firebase, dispatch, type, watchPath, id);
 
   if (type === 'first_child') {
-    return firebase
-      .database() // eslint-disable-line consistent-return
+    return firebase // eslint-disable-line consistent-return
+      .database()
       .ref()
       .child(path)
       .orderByKey()
@@ -87,8 +88,8 @@ export const watchEvent = (firebase, dispatch, options) => {
 
   // Handle once queries
   if (type === 'once') {
-    return query
-      .once('value') // eslint-disable-line consistent-return
+    return query // eslint-disable-line consistent-return
+      .once('value')
       .then((snapshot) => {
         if (snapshot.val() === null) {
           return dispatch({
@@ -197,5 +198,35 @@ export const watchEvents = (firebase, dispatch, events) =>
  */
 export const unWatchEvents = (firebase, dispatch, events) =>
   events.forEach(event => unWatchEvent(firebase, dispatch, event));
+
+/**
+ * @description Add watchers to a list of events
+ * @param {Object} firebase - Internal firebase object
+ * @param {Function} dispatch - Action dispatch function
+ * @param {String} path - Path of ref to be removed
+ * @param {Function} onComplete - Callback function that is called when removal is
+ * @param {Object} [options={}] - Configuration for removal
+ * @param {Boolean} [options.dispatchAction=true] - Whether or not to dispatch
+ * REMOVE action
+ * @return {Promise} Resolves with path
+ */
+export const remove = (firebase, dispatch, path, onComplete, options = {}) => {
+  const { dispatchAction = true } = options;
+  const { dispatchRemoveAction } = firebase._.config;
+  return firebase.database().ref(path).remove()
+    .then(() => {
+      if (dispatchRemoveAction && dispatchAction) {
+        dispatch({ type: actionTypes.REMOVE, path });
+      }
+      if (isFunction(onComplete)) {
+        onComplete();
+      }
+      return path;
+    })
+    .catch((err) => {
+      dispatch({ type: actionTypes.ERROR, payload: err });
+      return Promise.reject(err);
+    });
+};
 
 export default { watchEvents, unWatchEvents };
