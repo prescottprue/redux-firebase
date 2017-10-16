@@ -89,7 +89,8 @@ const handleProfileWatchResponse = (dispatch, firebase, userProfileSnap) => {
 };
 
 /**
- * @description Watch user profile. Internally dispatches SET_PROFILE actions
+ * @description Watch user profile. Internally dispatches sets firebase._.profileWatch
+ * and calls SET_PROFILE actions. Supports both Realtime Database and Firestore
  * @param {Function} dispatch - Action dispatch function
  * @param {Object} firebase - Internal firebase object
  * @private
@@ -97,21 +98,12 @@ const handleProfileWatchResponse = (dispatch, firebase, userProfileSnap) => {
 export const watchUserProfile = (dispatch, firebase) => {
   const {
     authUid,
-    config: { userProfile, useFirestoreForAuth }
+    config: { userProfile, useFirestoreForProfile },
   } = firebase._;
   unWatchUserProfile(firebase);
 
   if (userProfile) {
-    if (firebase.database) {
-      firebase._.profileWatch = firebase // eslint-disable-line no-param-reassign
-        .database()
-        .ref()
-        .child(`${userProfile}/${authUid}`)
-        .on('value', userProfileSnap =>
-          handleProfileWatchResponse(dispatch, firebase, userProfileSnap),
-        );
-    }
-    if (useFirestoreForAuth) {
+    if (useFirestoreForProfile && firebase.firestore) {
       firebase._.profileWatch = firebase // eslint-disable-line no-param-reassign
         .firestore()
         .collection(userProfile)
@@ -119,6 +111,18 @@ export const watchUserProfile = (dispatch, firebase) => {
         .onSnapshot('value', userProfileSnap =>
           handleProfileWatchResponse(dispatch, firebase, userProfileSnap),
         );
+    } else if (firebase.database) {
+      firebase._.profileWatch = firebase // eslint-disable-line no-param-reassign
+        .database()
+        .ref()
+        .child(`${userProfile}/${authUid}`)
+        .on('value', userProfileSnap =>
+          handleProfileWatchResponse(dispatch, firebase, userProfileSnap),
+        );
+    } else {
+      throw new Error(
+        'Real Time Database or Firestore must be included to enable user profile',
+      );
     }
   }
 };
